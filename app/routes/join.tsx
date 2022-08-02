@@ -3,9 +3,9 @@ import { json, redirect } from "@remix-run/node";
 import { Form, Link, useActionData, useSearchParams } from "@remix-run/react";
 import * as React from "react";
 
-import { getUserId, createUserSession } from "~/session.server";
+import { getUserId, createUserSession } from "~/server/session.server";
 
-import { createUser, getUserByEmail } from "~/models/user.server";
+import { createUser, getUserByEmail } from "~/server/user.server";
 import { safeRedirect, validateEmail } from "lib/remix";
 
 export async function loader({ request }: LoaderArgs) {

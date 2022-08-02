@@ -2,9 +2,9 @@ import type { LoaderArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Form, Link, NavLink, Outlet, useLoaderData } from "@remix-run/react";
 
-import { requireUserId } from "~/session.server";
+import { requireUserId } from "~/server/session.server";
 import { useUser } from "lib/remix";
-import { getNoteListItems } from "~/models/note.server";
+import { getNoteListItems } from "~/server/note.server";
 
 export async function loader({ request }: LoaderArgs) {
   const userId = await requireUserId(request);

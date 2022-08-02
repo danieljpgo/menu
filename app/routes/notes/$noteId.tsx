@@ -3,9 +3,9 @@ import { json, redirect } from "@remix-run/node";
 import { Form, useCatch, useLoaderData } from "@remix-run/react";
 import invariant from "tiny-invariant";
 
-import { deleteNote } from "~/models/note.server";
-import { getNote } from "~/models/note.server";
-import { requireUserId } from "~/session.server";
+import { deleteNote } from "~/server/note.server";
+import { getNote } from "~/server/note.server";
+import { requireUserId } from "~/server/session.server";
 
 export async function loader({ request, params }: LoaderArgs) {
   const userId = await requireUserId(request);
@@ -38,7 +38,7 @@ export default function NoteDetailsPage() {
       <Form method="post">
         <button
           type="submit"
-          className="rounded bg-blue-500  py-2 px-4 text-white hover:bg-blue-600 focus:bg-blue-400"
+          className="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600 focus:bg-blue-400"
         >
           Delete
         </button>

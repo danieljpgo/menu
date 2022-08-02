@@ -3,8 +3,8 @@ import { json, redirect } from "@remix-run/node";
 import { Form, useActionData } from "@remix-run/react";
 import * as React from "react";
 
-import { createNote } from "~/models/note.server";
-import { requireUserId } from "~/session.server";
+import { createNote } from "~/server/note.server";
+import { requireUserId } from "~/server/session.server";
 
 export async function action({ request }: ActionArgs) {
   const userId = await requireUserId(request);
