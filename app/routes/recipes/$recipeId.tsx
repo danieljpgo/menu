@@ -5,6 +5,8 @@ import invariant from "tiny-invariant";
 import { prisma } from "~/server/db.server";
 import { requireUserId } from "~/server/session.server";
 
+// @TODO select the first from the list or reset redirecting to index?
+
 export async function loader({ request, params }: LoaderArgs) {
   const userId = await requireUserId(request);
   invariant(params.recipeId, "noteId not found");

@@ -5,6 +5,12 @@ import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { prisma } from "~/server/db.server";
 import { requireUserId } from "~/server/session.server";
 
+// @TODO Zod
+// @TODO handle ingredient value selection
+// @TODO handle focus in better way
+// @TODO focus on input again when clicking add more
+// @TODO check the reason for the multiplies render
+
 export async function loader({ request }: LoaderArgs) {
   await requireUserId(request); // @TODO: redirect if not reve permission
   const ingredients = await prisma.ingredient.findMany({
@@ -16,24 +22,32 @@ export async function loader({ request }: LoaderArgs) {
 export async function action({ request }: ActionArgs) {
   const userId = await requireUserId(request); // @TODO: redirect if not reve permission
   const formData = await request.formData();
+  const amount = formData.get("amount");
   const name = formData.get("name");
   const description = formData.get("description");
-  const amount = formData.get("amount");
-  const ingredient = formData.get("ingredient");
+  const ingredients = formData.getAll("ingredient");
+  const amounts = formData.getAll("amount");
 
-  // @TODO Zod
   if (
     typeof name !== "string" ||
     name.length === 0 ||
     typeof amount !== "string" ||
     amount.length === 0 ||
-    typeof ingredient !== "string" ||
-    ingredient.length === 0 ||
     typeof description !== "string" ||
     description.length === 0
   ) {
+    console.log("aqui");
     return json({ errors: { name: null, body: null } }, { status: 400 });
   }
+
+  // return json({ errors: { name: null, body: null } }, { status: 400 });
+
+  const data = ingredients.map((a, index) => {
+    return {
+      amount: Number(amounts[index]),
+      ingredient: String(a),
+    };
+  });
 
   const recipe = await prisma.recipe.create({
     data: {
@@ -45,14 +59,14 @@ export async function action({ request }: ActionArgs) {
         },
       },
       ingredients: {
-        create: {
-          amount: Number(amount),
+        create: data.map((a) => ({
+          amount: Number(a.amount),
           ingredient: {
             connect: {
-              id: ingredient,
+              id: a.ingredient,
             },
           },
-        },
+        })),
       },
     },
   });
@@ -64,7 +78,6 @@ export default function NewRecipe() {
   const data = useLoaderData<typeof loader>();
   // const actionData = useActionData<typeof action>();
 
-  // @TODO handle focus in better way
   // const titleRef = React.useRef<HTMLInputElement>(null);
   // const bodyRef = React.useRef<HTMLTextAreaElement>(null);
 
@@ -109,8 +122,8 @@ export default function NewRecipe() {
       {[...Array(ingredientsAmount).keys()].map((number) => (
         <div className="flex gap-2" key={number}>
           <div className="grid gap-2">
-            <label htmlFor="ingredient">ingredient</label>
-            <select name="ingredient" id="ingredient">
+            <label htmlFor={`ingredient-${number}`}>ingredient</label>
+            <select name="ingredient" id={`ingredient-${number}`}>
               {data.ingredients.map((ingredient) => (
                 <option key={ingredient.id} value={ingredient.id}>
                   {ingredient.name} - {ingredient.unit}
@@ -119,9 +132,9 @@ export default function NewRecipe() {
             </select>
           </div>
           <div className="grid gap-2">
-            <label htmlFor="amount">amount</label>
+            <label htmlFor={`amount-${number}`}>amount</label>
             <input
-              id="amount"
+              id={`amount-${number}`}
               name="amount"
               className="flex-1 px-3 text-lg leading-loose border-2 border-blue-500 rounded-md"
               // aria-invalid={actionData?.errors?.name ? true : undefined}
@@ -136,7 +149,6 @@ export default function NewRecipe() {
         className="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600 focus:bg-blue-400"
         onClick={() => setIngredientsAmount((prev) => prev + 1)}
         type="button"
-        disabled
       >
         +
       </button>
