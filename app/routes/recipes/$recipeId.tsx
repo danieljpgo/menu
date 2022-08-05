@@ -6,6 +6,7 @@ import { prisma } from "~/server/db.server";
 import { requireUserId } from "~/server/session.server";
 
 // @TODO select the first from the list or reset redirecting to index?
+// @TODO create a good error screen
 
 export async function loader({ request, params }: LoaderArgs) {
   const userId = await requireUserId(request);
@@ -52,19 +53,19 @@ export default function RecipeDetails() {
   console.log({ data });
 
   return (
-    <div>
+    <div className="grid gap-4">
       <h3 className="text-2xl font-bold">{data.recipe.name}</h3>
-      <p className="py-6">{data.recipe.description}</p>
-      <ul>
+      <p>{data.recipe.description}</p>
+      <ul className="grid gap-4">
         {data.recipe.ingredients.map((a) => (
-          <li key={a.ingredient.name}>
-            <p className="py-6">{a.ingredient.name}</p>
-            <p className="py-6">{a.amount}</p>
-            <p className="py-6">{a.ingredient.unit}</p>
+          <li key={a.ingredient.name} className="flex gap-2">
+            <p>{a.ingredient.name}</p>
+            <p>{a.amount}</p>
+            <p>{a.ingredient.unit}</p>
           </li>
         ))}
       </ul>
-      <hr className="my-4" />
+      <hr className="" />
       <Form method="post">
         <button
           type="submit"

@@ -10,6 +10,7 @@ import { requireUserId } from "~/server/session.server";
 // @TODO handle focus in better way
 // @TODO focus on input again when clicking add more
 // @TODO check the reason for the multiplies render
+// @TODO create a good error screen
 
 export async function loader({ request }: LoaderArgs) {
   await requireUserId(request); // @TODO: redirect if not reve permission
@@ -95,25 +96,29 @@ export default function NewRecipe() {
       style={{
         display: "flex",
         flexDirection: "column",
-        gap: 8,
+        gap: 16,
         width: "100%",
       }}
     >
-      <label htmlFor="name">name</label>
+      <label className="leading-4" htmlFor="name">
+        name
+      </label>
       <input
         id="name"
         name="name"
-        className="flex-1 px-3 text-lg leading-loose border-2 border-blue-500 rounded-md"
+        className="flex-1 px-3 text-lg border-2 border-blue-500 rounded-md"
         // aria-invalid={actionData?.errors?.name ? true : undefined}
         // aria-errormessage={
         // actionData?.errors?.name ? "title-error" : undefined
         // }
       />
-      <label htmlFor="description">description</label>
+      <label className="leading-4" htmlFor="description">
+        description
+      </label>
       <input
         id="description"
         name="description"
-        className="flex-1 px-3 text-lg leading-loose border-2 border-blue-500 rounded-md"
+        className="flex-1 px-3 text-lg border-2 border-blue-500 rounded-md"
         // aria-invalid={actionData?.errors?.name ? true : undefined}
         // aria-errormessage={
         // actionData?.errors?.name ? "title-error" : undefined
@@ -122,7 +127,9 @@ export default function NewRecipe() {
       {[...Array(ingredientsAmount).keys()].map((number) => (
         <div className="flex gap-2" key={number}>
           <div className="grid gap-2">
-            <label htmlFor={`ingredient-${number}`}>ingredient</label>
+            <label className="leading-4" htmlFor={`ingredient-${number}`}>
+              ingredient
+            </label>
             <select name="ingredient" id={`ingredient-${number}`}>
               {data.ingredients.map((ingredient) => (
                 <option key={ingredient.id} value={ingredient.id}>
@@ -132,11 +139,13 @@ export default function NewRecipe() {
             </select>
           </div>
           <div className="grid gap-2">
-            <label htmlFor={`amount-${number}`}>amount</label>
+            <label className="leading-4" htmlFor={`amount-${number}`}>
+              amount
+            </label>
             <input
               id={`amount-${number}`}
               name="amount"
-              className="flex-1 px-3 text-lg leading-loose border-2 border-blue-500 rounded-md"
+              className="flex-1 px-3 text-lg border-2 border-blue-500 rounded-md"
               // aria-invalid={actionData?.errors?.name ? true : undefined}
               // aria-errormessage={
               // actionData?.errors?.name ? "title-error" : undefined
@@ -152,7 +161,6 @@ export default function NewRecipe() {
       >
         +
       </button>
-
       <div className="text-right">
         <button
           type="submit"
@@ -171,7 +179,7 @@ export default function NewRecipe() {
           <input
             ref={titleRef}
             name="title"
-            className="flex-1 px-3 text-lg leading-loose border-2 border-blue-500 rounded-md"
+            className="flex-1 px-3 text-lg border-2 border-blue-500 rounded-md"
             aria-invalid={actionData?.errors?.title ? true : undefined}
             aria-errormessage={
               actionData?.errors?.title ? "title-error" : undefined

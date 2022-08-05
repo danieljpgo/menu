@@ -68,7 +68,7 @@ export default function RecipesLayout() {
                       `block border-b p-4 text-xl ${isActive ? "bg-white" : ""}`
                     }
                   >
-                    📝 {recipe.name}
+                    🍛 {recipe.name}
                   </NavLink>
                 </li>
               ))}
