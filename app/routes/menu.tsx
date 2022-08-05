@@ -9,22 +9,10 @@ import { useUser } from "lib/remix";
 // @TODO Move to layout component
 export async function loader({ request }: LoaderArgs) {
   const userId = await requireUserId(request);
-  const recipes = await prisma.recipe.findMany({
+  const menu = await prisma.menu.findFirst({
     where: { userId },
-    orderBy: { updatedAt: "desc" },
-    select: {
-      ingredients: {
-        select: {
-          ingredient: true,
-          amount: true,
-        },
-      },
-      id: true,
-      user: true,
-      name: true,
-    },
   });
-  return json({ recipes });
+  return json({ menu });
 }
 
 export default function RecipesLayout() {
@@ -53,27 +41,25 @@ export default function RecipesLayout() {
       <main className="flex h-full bg-white">
         <div className="h-full border-r w-80 bg-gray-50">
           <Link to="new" className="block p-4 text-xl text-blue-500">
-            + new recipe
+            + new menu
           </Link>
 
           <hr />
 
-          {data.recipes.length === 0 ? (
-            <p className="p-4">No recipes yet</p>
+          {!data.menu ? (
+            <p className="p-4">No menu yet</p>
           ) : (
             <ol>
-              {data.recipes.map((recipe) => (
-                <li key={recipe.id}>
-                  <NavLink
-                    to={recipe.id}
-                    className={({ isActive }) =>
-                      `block border-b p-4 text-xl ${isActive ? "bg-white" : ""}`
-                    }
-                  >
-                    🍛 {recipe.name}
-                  </NavLink>
-                </li>
-              ))}
+              <li key={data.menu.id}>
+                <NavLink
+                  to={data.menu.id}
+                  className={({ isActive }) =>
+                    `block border-b p-4 text-xl ${isActive ? "bg-white" : ""}`
+                  }
+                >
+                  📋 {data.menu.name}
+                </NavLink>
+              </li>
             </ol>
           )}
         </div>
