@@ -2,23 +2,32 @@ import type { ActionArgs, LoaderArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { Form, useCatch, useLoaderData } from "@remix-run/react";
 import invariant from "tiny-invariant";
+import { z } from "zod";
 import { prisma } from "~/server/db.server";
 import { requireUserId } from "~/server/session.server";
 
 // @TODO select the first from the list or reset redirecting to index?
 // @TODO create a good error screen
 
+const schema = z.object({
+  menuId: z.string({ required_error: "menuId not found" }),
+});
+
 export async function loader({ request, params }: LoaderArgs) {
   const userId = await requireUserId(request);
-  invariant(params.menuId, "noteId not found");
+  const validation = schema.safeParse(params);
+
+  if (!validation.success) {
+    const { message } = validation.error.issues[0];
+    throw new Error(message);
+  }
+
   const menu = await prisma.menu.findFirst({
     include: {
       recipes: {
         include: {
           ingredients: {
-            include: {
-              ingredient: true,
-            },
+            include: { ingredient: true },
           },
         },
       },
@@ -28,14 +37,17 @@ export async function loader({ request, params }: LoaderArgs) {
   if (!menu) {
     throw new Response("Not Found", { status: 404 });
   }
-
-  console.log(menu.recipes[0].ingredients);
   return json({ menu });
 }
 
 export async function action({ request, params }: ActionArgs) {
   const userId = await requireUserId(request);
-  invariant(params.menuId, "menuId not found");
+  const validation = schema.safeParse(params);
+
+  if (!validation.success) {
+    const { message } = validation.error.issues[0];
+    throw new Error(message);
+  }
 
   await prisma.menu.deleteMany({
     where: { id: params.menuId, userId },

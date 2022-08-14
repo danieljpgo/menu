@@ -5,7 +5,7 @@
 - [ ] Tailwind - Best way to handle Tailwind and Remix
 - [ ] Eslint
 - [ ] Prettier
-- [ ] Zod
+- [x] Zod
 
 ## UX
 
@@ -13,5 +13,5 @@
 
 - [ ] Optimistic UI
 - [ ] Handle focus
-
+- [ ] Error Boundary better screen
 - [ ] Remove packages

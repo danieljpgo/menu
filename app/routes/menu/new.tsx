@@ -1,19 +1,25 @@
 import type { ActionArgs, LoaderArgs } from "@remix-run/node";
 import * as React from "react";
 import { json, redirect } from "@remix-run/node";
+import { z } from "zod";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { prisma } from "~/server/db.server";
 import { requireUserId } from "~/server/session.server";
 
-// @TODO Zod
 // @TODO handle ingredient value selection
 // @TODO handle focus in better way
 // @TODO focus on input again when clicking add more
 // @TODO check the reason for the multiplies render
 // @TODO create a good error screen
 
+const schema = z.object({
+  name: z.string(),
+  description: z.string(),
+  recipes: z.array(z.string()),
+});
+
 export async function loader({ request }: LoaderArgs) {
-  await requireUserId(request); // @TODO: redirect if not reve permission
+  await requireUserId(request);
   const recipes = await prisma.recipe.findMany({
     orderBy: { name: "desc" },
   });
@@ -21,42 +27,30 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export async function action({ request }: ActionArgs) {
-  const userId = await requireUserId(request); // @TODO: redirect if not reve permission
+  const userId = await requireUserId(request);
   const formData = await request.formData();
-  const name = formData.get("name");
-  const description = formData.get("description");
-  const recipes = formData.getAll("recipe");
+  const validation = schema.safeParse({
+    name: formData.get("name"),
+    description: formData.get("description"),
+    recipes: formData.getAll("recipe"),
+  });
 
-  if (
-    typeof name !== "string" ||
-    name.length === 0 ||
-    typeof description !== "string" ||
-    description.length === 0
-  ) {
-    console.log("aqui");
+  // @TODO better error handler
+  if (!validation.success) {
     return json({ errors: { name: null, body: null } }, { status: 400 });
   }
 
-  // return json({ errors: { name: null, body: null } }, { status: 400 });
-
-  const data = recipes.map((a, index) => {
-    return {
-      id: String(a),
-    };
-  });
-
+  const form = validation.data;
   const menu = await prisma.menu.create({
     data: {
-      name,
-      description,
-      user: {
-        connect: {
-          id: userId,
-        },
-      },
+      name: form.name,
+      description: form.description,
       recipes: {
-        connect: data,
+        connect: form.recipes.map((recipe) => ({
+          id: recipe,
+        })),
       },
+      user: { connect: { id: userId } },
     },
   });
   return redirect(`/menu/${menu.id}`);

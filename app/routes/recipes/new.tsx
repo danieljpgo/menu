@@ -51,19 +51,19 @@ export async function action({ request }: ActionArgs) {
   if (!validation.success) {
     return json({ errors: { name: null, body: null } }, { status: 400 });
   }
-  const form = validation.data;
 
+  const form = validation.data;
   const recipe = await prisma.recipe.create({
     data: {
       name: form.name,
       description: form.description,
-      user: { connect: { id: userId } },
       ingredients: {
         create: form.ingredients.map((ingredient, index) => ({
           amount: form.amounts[index],
           ingredient: { connect: { id: ingredient } },
         })),
       },
+      user: { connect: { id: userId } },
     },
   });
   return redirect(`/recipes/${recipe.id}`);
