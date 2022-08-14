@@ -1,19 +1,35 @@
 import type { ActionArgs, LoaderArgs } from "@remix-run/node";
 import * as React from "react";
 import { json, redirect } from "@remix-run/node";
+import { z } from "zod";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { prisma } from "~/server/db.server";
 import { requireUserId } from "~/server/session.server";
 
-// @TODO Zod
 // @TODO handle ingredient value selection
 // @TODO handle focus in better way
 // @TODO focus on input again when clicking add more
 // @TODO check the reason for the multiplies render
 // @TODO create a good error screen
+// @TODO repetitive ingredients
+
+const schema = z.object({
+  name: z.string(),
+  description: z.string(),
+  amounts: z.array(
+    z
+      .string()
+      .transform((val) => Number(val))
+      .refine((val) => !Number.isNaN(val), {
+        message: "Expected number, received string",
+      })
+    // @TODO create a abstraction
+  ),
+  ingredients: z.array(z.string()),
+});
 
 export async function loader({ request }: LoaderArgs) {
-  await requireUserId(request); // @TODO: redirect if not reve permission
+  await requireUserId(request);
   const ingredients = await prisma.ingredient.findMany({
     orderBy: { name: "desc" },
   });
@@ -21,52 +37,31 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export async function action({ request }: ActionArgs) {
-  const userId = await requireUserId(request); // @TODO: redirect if not reve permission
+  const userId = await requireUserId(request);
   const formData = await request.formData();
-  const amount = formData.get("amount");
-  const name = formData.get("name");
-  const description = formData.get("description");
-  const ingredients = formData.getAll("ingredient");
-  const amounts = formData.getAll("amount");
+  const validation = schema.safeParse({
+    amount: formData.get("amount"),
+    name: formData.get("name"),
+    description: formData.get("description"),
+    ingredients: formData.getAll("ingredient"),
+    amounts: formData.getAll("amount"),
+  });
 
-  if (
-    typeof name !== "string" ||
-    name.length === 0 ||
-    typeof amount !== "string" ||
-    amount.length === 0 ||
-    typeof description !== "string" ||
-    description.length === 0
-  ) {
-    console.log("aqui");
+  // @TODO better error handler
+  if (!validation.success) {
     return json({ errors: { name: null, body: null } }, { status: 400 });
   }
-
-  // return json({ errors: { name: null, body: null } }, { status: 400 });
-
-  const data = ingredients.map((a, index) => {
-    return {
-      amount: Number(amounts[index]),
-      ingredient: String(a),
-    };
-  });
+  const form = validation.data;
 
   const recipe = await prisma.recipe.create({
     data: {
-      name,
-      description,
-      user: {
-        connect: {
-          id: userId,
-        },
-      },
+      name: form.name,
+      description: form.description,
+      user: { connect: { id: userId } },
       ingredients: {
-        create: data.map((a) => ({
-          amount: Number(a.amount),
-          ingredient: {
-            connect: {
-              id: a.ingredient,
-            },
-          },
+        create: form.ingredients.map((ingredient, index) => ({
+          amount: form.amounts[index],
+          ingredient: { connect: { id: ingredient } },
         })),
       },
     },

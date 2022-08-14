@@ -1,16 +1,23 @@
 import type { ActionArgs, LoaderArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { Form, useCatch, useLoaderData } from "@remix-run/react";
-import invariant from "tiny-invariant";
+import { z } from "zod";
 import { prisma } from "~/server/db.server";
 import { requireUserId } from "~/server/session.server";
 
-// @TODO select the first from the list or reset redirecting to index?
-// @TODO create a good error screen
+const schema = z.object({
+  recipeId: z.string({ required_error: "recipeId not found" }),
+});
 
 export async function loader({ request, params }: LoaderArgs) {
   const userId = await requireUserId(request);
-  invariant(params.recipeId, "noteId not found");
+  const validation = schema.safeParse(params);
+
+  if (!validation.success) {
+    const { message } = validation.error.issues[0];
+    throw new Error(message);
+  }
+
   const recipe = await prisma.recipe.findFirst({
     select: {
       id: true,
@@ -28,7 +35,7 @@ export async function loader({ request, params }: LoaderArgs) {
         },
       },
     },
-    where: { id: params.recipeId, userId },
+    where: { id: validation.data.recipeId, userId },
   });
   if (!recipe) {
     throw new Response("Not Found", { status: 404 });
@@ -38,19 +45,21 @@ export async function loader({ request, params }: LoaderArgs) {
 
 export async function action({ request, params }: ActionArgs) {
   const userId = await requireUserId(request);
-  invariant(params.recipeId, "recipeId not found");
+  const validation = schema.safeParse(params);
+
+  if (!validation.success) {
+    const { message } = validation.error.issues[0];
+    throw new Error(message);
+  }
 
   await prisma.recipe.deleteMany({
-    where: { id: params.recipeId, userId },
+    where: { id: validation.data.recipeId, userId },
   });
-
   return redirect("/recipes");
 }
 
 export default function RecipeDetails() {
   const data = useLoaderData<typeof loader>();
-
-  console.log({ data });
 
   return (
     <div className="grid gap-4">
@@ -85,8 +94,12 @@ export function ErrorBoundary({ error }: { error: Error }) {
 
 export function CatchBoundary() {
   const caught = useCatch();
+  console.log({ caught });
   if (caught.status === 404) {
-    return <div>Note not found</div>;
+    return <div>{caught.data}</div>;
   }
   throw new Error(`Unexpected caught response with status: ${caught.status}`);
 }
+
+// @TODO select the first from the list or reset redirecting to index?
+// @TODO create a good error screen
