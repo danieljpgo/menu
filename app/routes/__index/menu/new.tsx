@@ -1,11 +1,14 @@
-import type { ActionArgs, LoaderArgs } from "@remix-run/node";
+import type { ActionArgs, LoaderArgs, MetaFunction } from "@remix-run/node";
 import * as React from "react";
 import { json, redirect } from "@remix-run/node";
 import { z } from "zod";
-import { Form, useActionData, useLoaderData } from "@remix-run/react";
+import { Form, useLoaderData } from "@remix-run/react";
 import { prisma } from "~/server/db.server";
 import { requireUserId } from "~/server/session.server";
 
+export const meta: MetaFunction = () => ({
+  title: `Menu - New`,
+});
 // @TODO handle ingredient value selection
 // @TODO handle focus in better way
 // @TODO focus on input again when clicking add more

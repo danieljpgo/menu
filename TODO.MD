@@ -1,18 +1,33 @@
 ## Tooling
 
-### improvement
+### Improvement
 
-- [ ] Tailwind - Best way to handle Tailwind and Remix
-- [ ] Eslint
-- [ ] Prettier
+- [ ] VSCode Config
+- [ ] Tailwind - What is the best way to use Tailwind with Remix?
+- [ ] ESLint - Add the rules I want in the project.
+- [ ] Prettier - Add the rules I want in the project.
 - [x] Zod
+- [ ] Remove packages
+  - [ ] tiny-variants
+- [ ] Add titles to all pages
 
 ## UX
 
-### improvement
+### Improvement
 
-- [ ] Optimistic UI
-- [ ] Handle focus
-- [ ] Error Boundary better screen
-- [ ] Remove packages
-  - [ ] tiny-variants
+- [ ] Optimistic UI - Mutations
+- [ ] Handle focus - Forms
+- [ ] Error Boundary and CatchBoundary for all pages
+
+## Performance
+
+### Improvement
+
+- [ ] Excessive Query
+
+## DX
+
+### Improvement
+
+- [ ] File - user.server
+- [ ] File - session.server

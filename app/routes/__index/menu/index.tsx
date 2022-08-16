@@ -26,7 +26,6 @@ export async function loader({ request, params }: LoaderArgs) {
 export default function Recipes() {
   const data = useLoaderData<typeof loader>();
 
-  console.log(data);
   return (
     <div className="grid gap-4">
       {data.menu ? (

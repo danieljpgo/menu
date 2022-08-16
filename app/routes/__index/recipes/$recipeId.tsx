@@ -1,16 +1,12 @@
 import type { ActionArgs, LoaderArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { Form, useCatch, useLoaderData } from "@remix-run/react";
-import invariant from "tiny-invariant";
 import { z } from "zod";
 import { prisma } from "~/server/db.server";
 import { requireUserId } from "~/server/session.server";
 
-// @TODO select the first from the list or reset redirecting to index?
-// @TODO create a good error screen
-
 const schema = z.object({
-  menuId: z.string({ required_error: "menuId not found" }),
+  recipeId: z.string({ required_error: "recipeId not found" }),
 });
 
 export async function loader({ request, params }: LoaderArgs) {
@@ -22,22 +18,29 @@ export async function loader({ request, params }: LoaderArgs) {
     throw new Error(message);
   }
 
-  const menu = await prisma.menu.findFirst({
-    include: {
-      recipes: {
-        include: {
-          ingredients: {
-            include: { ingredient: true },
+  const recipe = await prisma.recipe.findFirst({
+    select: {
+      id: true,
+      description: true,
+      name: true,
+      ingredients: {
+        select: {
+          amount: true,
+          ingredient: {
+            select: {
+              unit: true,
+              name: true,
+            },
           },
         },
       },
     },
-    where: { id: params.menuId, userId },
+    where: { id: validation.data.recipeId, userId },
   });
-  if (!menu) {
+  if (!recipe) {
     throw new Response("Not Found", { status: 404 });
   }
-  return json({ menu });
+  return json({ recipe });
 }
 
 export async function action({ request, params }: ActionArgs) {
@@ -49,11 +52,10 @@ export async function action({ request, params }: ActionArgs) {
     throw new Error(message);
   }
 
-  await prisma.menu.deleteMany({
-    where: { id: params.menuId, userId },
+  await prisma.recipe.deleteMany({
+    where: { id: validation.data.recipeId, userId },
   });
-
-  return redirect("/menu");
+  return redirect("/recipes");
 }
 
 export default function RecipeDetails() {
@@ -61,22 +63,14 @@ export default function RecipeDetails() {
 
   return (
     <div className="grid gap-4">
-      <h3 className="text-2xl font-bold">{data.menu.name}</h3>
-      <p>{data.menu.description}</p>
+      <h3 className="text-2xl font-bold">{data.recipe.name}</h3>
+      <p>{data.recipe.description}</p>
       <ul className="grid gap-4">
-        {data.menu.recipes.map((a) => (
-          <li key={a.id} className="">
-            <p>{a.name}</p>
-            <p>{a.description}</p>
-            <div>
-              {a.ingredients.map((b) => (
-                <div key={b.id} className="flex gap-2">
-                  <p>{b.ingredient.name}</p>
-                  <p>{b.amount}</p>
-                  <p>{b.ingredient.unit}</p>
-                </div>
-              ))}
-            </div>
+        {data.recipe.ingredients.map((a) => (
+          <li key={a.ingredient.name} className="flex gap-2">
+            <p>{a.ingredient.name}</p>
+            <p>{a.amount}</p>
+            <p>{a.ingredient.unit}</p>
           </li>
         ))}
       </ul>
@@ -101,7 +95,10 @@ export function ErrorBoundary({ error }: { error: Error }) {
 export function CatchBoundary() {
   const caught = useCatch();
   if (caught.status === 404) {
-    return <div>Note not found</div>;
+    return <div>{caught.data}</div>;
   }
   throw new Error(`Unexpected caught response with status: ${caught.status}`);
 }
+
+// @TODO select the first from the list or reset redirecting to index?
+// @TODO create a good error screen
