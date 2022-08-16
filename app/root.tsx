@@ -19,7 +19,6 @@ export const links: LinksFunction = () => {
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
   viewport: "width=device-width,initial-scale=1",
-  // title: "Remix Notes",
 });
 
 export async function loader({ request }: LoaderArgs) {
@@ -28,24 +27,11 @@ export async function loader({ request }: LoaderArgs) {
   });
 }
 
-// @TODO check if pages title withs ok
-
 export default function App() {
   return (
     <Document>
       <Outlet />
     </Document>
-    // <html lang="en" className="h-full">
-    //   <head>
-    //     <Meta />
-    //     <Links />
-    //   </head>
-    //   <body className="h-full">
-    //     <ScrollRestoration />
-    //     <Scripts />
-    //     <LiveReload />
-    //   </body>
-    // </html>
   );
 }
 
@@ -73,26 +59,47 @@ function Document(props: DocumentProps) {
   );
 }
 
-export function ErrorBoundary({ error }: { error: Error }) {
-  console.error(error);
-  return (
-    <Document title="Uh-oh!">
-      <main>
-        <h1>App Error</h1>
-        <pre>{error.message}</pre>
-      </main>
-    </Document>
-  );
-}
+const errors: Record<number, string> = {
+  401: "No authorization to access the page",
+  404: "Page not found",
+  500: "Something went wrong, refresh the page in a few moments",
+  502: "Something went wrong, check your connection and try again",
+  503: "Service Unavailable",
+  504: "We got no response from the server, please try again later",
+};
 
 export function CatchBoundary() {
   const caught = useCatch();
+
+  if (Object.keys(errors).includes(String(caught.status))) {
+    return (
+      <Document title={`${caught.status} ${caught.statusText}`}>
+        <main>
+          <h1>
+            {caught.status} {caught.statusText}
+          </h1>
+          <h2>{errors[caught.status]}</h2>
+        </main>
+      </Document>
+    );
+  }
+
+  throw new Error("Generic Error");
+}
+
+export function ErrorBoundary({ error }: { error: Error }) {
+  console.error(error);
   return (
-    <Document title={`${caught.status} ${caught.statusText}`}>
+    <Document title="Oops :(">
       <main>
-        <h1>
-          {caught.status} {caught.statusText}
-        </h1>
+        <h1>App Error</h1>
+        <h2>
+          Something went wrong, try to reload the page or go back to the home
+          page
+        </h2>
+        <pre>
+          <code>{error.message}</code>
+        </pre>
       </main>
     </Document>
   );
