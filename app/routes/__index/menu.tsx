@@ -1,8 +1,9 @@
 import type { LoaderArgs, MetaFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { Link, NavLink, Outlet, useLoaderData } from "@remix-run/react";
+import { Outlet, useLoaderData } from "@remix-run/react";
 import { prisma } from "~/server/db.server";
 import { requireUserId } from "~/server/session.server";
+import { NavLink, Shelf } from "~/components";
 
 export const meta: MetaFunction = () => ({
   title: "Menu",
@@ -10,10 +11,10 @@ export const meta: MetaFunction = () => ({
 
 export async function loader({ request }: LoaderArgs) {
   const userId = await requireUserId(request);
-  const menu = await prisma.menu.findFirst({
+  const menus = await prisma.menu.findMany({
     where: { userId },
   });
-  return json({ menu });
+  return json({ menus });
 }
 
 export default function RecipesLayout() {
@@ -21,50 +22,27 @@ export default function RecipesLayout() {
 
   return (
     <>
-      <div className="h-full border-r w-80 bg-gray-50">
-        <Link to="new" className="block p-4 text-xl text-blue-500">
-          + new menu
-        </Link>
-        <hr />
-        {!data.menu ? (
-          <p className="p-4">No menu yet</p>
-        ) : (
-          <ol>
-            <li key={data.menu.id}>
-              <NavLink
-                to={data.menu.id}
-                className={({ isActive }) =>
-                  `block border-b p-4 text-xl ${isActive ? "bg-white" : ""}`
-                }
-              >
-                📋 {data.menu.name}
-              </NavLink>
-            </li>
-          </ol>
-        )}
-      </div>
-      <div className="flex-1 p-6">
+      <nav className="flex justify-center w-screen overflow-x-auto bg-white shadow-sm ">
+        <Shelf as="ol">
+          {data.menus.map((menu, index) => (
+            <>
+              <li key={menu.id} className="flex items-center whitespace-nowrap">
+                <div className="px-6 py-4">
+                  <NavLink to={menu.id} prefetch="render">
+                    📋 {menu.name}
+                  </NavLink>
+                </div>
+                {index !== data.menus.length - 1 && (
+                  <span className="text-sm font-medium text-gray-700">|</span>
+                )}
+              </li>
+            </>
+          ))}
+        </Shelf>
+      </nav>
+      <div className="flex-1 px-6 py-4">
         <Outlet />
       </div>
     </>
   );
 }
-
-// <div className="flex flex-col h-full min-h-screen">
-//   <header className="flex items-center justify-between p-4 text-white bg-slate-800">
-//     <h1 className="flex items-center text-3xl font-bold">
-//       <Link to="/recipes">recipes</Link>
-//       <hr className="w-4 mx-4" />
-//       <Link to="/menu">menu</Link>
-//     </h1>
-//     <p>{user.email}</p>
-//     <Form action="/logout" method="post">
-//       <button
-//         type="submit"
-//         className="px-4 py-2 text-blue-100 rounded bg-slate-600 hover:bg-blue-500 active:bg-blue-600"
-//       >
-//         Logout
-//       </button>
-//     </Form>
-//   </header>
-// <main className="flex h-full bg-white">
