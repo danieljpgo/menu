@@ -1,4 +1,5 @@
 import { Form, Link, Outlet } from "@remix-run/react";
+import { Button, NavLink } from "~/components";
 import { useUser } from "~/hooks";
 
 export default function Index() {
@@ -6,27 +7,58 @@ export default function Index() {
 
   return (
     <>
-      <header className="flex items-center justify-between p-4 text-white bg-slate-800">
-        <h1 className="flex items-center text-3xl font-bold">
-          <Link to="/recipes" prefetch="render">
-            recipes
-          </Link>
-          <hr className="w-4 mx-4" />
-          <Link to="/menu" prefetch="render">
-            menu
-          </Link>
-        </h1>
-        <p>{user.email}</p>
-        <Form action="/logout" method="post">
-          <button
-            type="submit"
-            className="px-4 py-2 text-blue-100 rounded bg-slate-600 hover:bg-blue-500 active:bg-blue-600"
-          >
-            Logout
-          </button>
-        </Form>
+      <header className="relative bg-white shadow-sm">
+        <div
+          className="container flex items-center justify-between px-6 py-4 mx-auto"
+          style={{ minHeight: 72 }}
+        >
+          <h1>
+            <Link
+              to="/"
+              className="text-xl antialiased font-semibold tracking-tight text-gray-800 transition-colors duration-200 transform hover:text-gray-700 lg:text-2xl"
+            >
+              Menu
+            </Link>
+          </h1>
+          <nav>
+            <ul className="flex items-center gap-4">
+              <li>
+                <NavLink to="/" prefetch="render">
+                  home
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/recipes" prefetch="render">
+                  recipes
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/menu" prefetch="render">
+                  menus
+                </NavLink>
+              </li>
+              <li>
+                {/* @TODO <Text/> */}
+                <span className="text-sm font-medium text-gray-700">|</span>
+              </li>
+              <li className="hidden md:flex">
+                {/* @TODO <Text/> */}
+                <p className="text-sm font-medium text-gray-700 transition-colors duration-200 transform hover:text-blue-500">
+                  {user.email}
+                </p>
+              </li>
+              <li>
+                <Form action="/logout" method="post">
+                  <Button size="sm" type="submit">
+                    logout
+                  </Button>
+                </Form>
+              </li>
+            </ul>
+          </nav>
+        </div>
       </header>
-      <main className="flex h-full">
+      <main className="h-full">
         <Outlet />
       </main>
     </>
