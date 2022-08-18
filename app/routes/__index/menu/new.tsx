@@ -5,15 +5,11 @@ import { z } from "zod";
 import { Form, useLoaderData } from "@remix-run/react";
 import { prisma } from "~/server/db.server";
 import { requireUserId } from "~/server/session.server";
+import { Button, TextField, SelectField, Stack } from "~/components";
 
 export const meta: MetaFunction = () => ({
   title: `Menu - New`,
 });
-// @TODO handle ingredient value selection
-// @TODO handle focus in better way
-// @TODO focus on input again when clicking add more
-// @TODO check the reason for the multiplies render
-// @TODO create a good error screen
 
 const schema = z.object({
   name: z.string(),
@@ -64,28 +60,62 @@ export default function NewRecipe() {
   const data = useLoaderData<typeof loader>();
   // const actionData = useActionData<typeof action>();
 
+  // const selectRef = React.useRef<HTMLSelectElement>(null);
   // const titleRef = React.useRef<HTMLInputElement>(null);
   // const bodyRef = React.useRef<HTMLTextAreaElement>(null);
 
   // React.useEffect(() => {
   //   if (actionData?.errors?.title) {
   //     titleRef.current?.focus();
-  //   } else if (actionData?.errors?.body) {
+  //   } else if (actionData?.errors?.body) ws{
   //     bodyRef.current?.focus();
   //   }
   // }, [actionData]);
 
   return (
-    <Form
-      method="post"
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 16,
-        width: "100%",
-      }}
-    >
-      <label className="leading-4" htmlFor="name">
+    <Form method="post">
+      <div className="pb-32">
+        <Stack gap="md">
+          <TextField id="name" name="name" label="name" />
+          <TextField id="description" name="description" label="description" />
+          {[...Array(ingredientsAmount).keys()].map((number) => (
+            <div className="flex gap-2" key={number}>
+              <div className="grid gap-2">
+                <SelectField
+                  id={`recipe-${number}`}
+                  name="recipe"
+                  label="recipe"
+                >
+                  {data.recipes.map((recipe) => (
+                    <option key={recipe.id} value={recipe.id}>
+                      {recipe.name}
+                    </option>
+                  ))}
+                </SelectField>
+              </div>
+            </div>
+          ))}
+        </Stack>
+      </div>
+      {/* <div className="fixed bottom-0 left-0 right-0 grid gap-4 px-6 pt-5 pb-4 bg-white border border-gray-100 border-solid shadow-lg"> */}
+      <div className="fixed bottom-0 left-0 right-0 grid gap-4 px-6 pb-4 bg-white">
+        <hr className="pb-0.5" />
+        <Button
+          type="button"
+          size="sm"
+          onClick={() => setIngredientsAmount((prev) => prev + 1)}
+        >
+          +
+        </Button>
+        <Button type="submit" size="sm">
+          Save
+        </Button>
+      </div>
+    </Form>
+  );
+}
+
+/* <label className="leading-4" htmlFor="name">
         name
       </label>
       <input
@@ -96,8 +126,9 @@ export default function NewRecipe() {
         // aria-errormessage={
         // actionData?.errors?.name ? "title-error" : undefined
         // }
-      />
-      <label className="leading-4" htmlFor="description">
+      /> */
+
+/* <label className="leading-4" htmlFor="description">
         description
       </label>
       <input
@@ -108,41 +139,7 @@ export default function NewRecipe() {
         // aria-errormessage={
         // actionData?.errors?.name ? "title-error" : undefined
         // }
-      />
-      {[...Array(ingredientsAmount).keys()].map((number) => (
-        <div className="flex gap-2" key={number}>
-          <div className="grid gap-2">
-            <label className="leading-4" htmlFor={`recipe-${number}`}>
-              recipe
-            </label>
-            <select name="recipe" id={`recipe-${number}`}>
-              {data.recipes.map((recipe) => (
-                <option key={recipe.id} value={recipe.id}>
-                  {recipe.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      ))}
-      <button
-        className="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600 focus:bg-blue-400"
-        onClick={() => setIngredientsAmount((prev) => prev + 1)}
-        type="button"
-      >
-        +
-      </button>
-      <div className="text-right">
-        <button
-          type="submit"
-          className="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600 focus:bg-blue-400"
-        >
-          Save
-        </button>
-      </div>
-    </Form>
-  );
-}
+      /> */
 
 /* <div>
         <label className="flex flex-col w-full gap-1">
@@ -185,3 +182,8 @@ export default function NewRecipe() {
         )}
       </div>
 */
+// @TODO handle ingredient value selection
+// @TODO handle focus in better way
+// @TODO focus on input again when clicking add more
+// @TODO check the reason for the multiplies render
+// @TODO create a good error screen
