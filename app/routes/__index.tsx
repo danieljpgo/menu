@@ -49,7 +49,7 @@ export default function Index() {
               </li>
               <li>
                 <Form action="/logout" method="post">
-                  <Button size="sm" type="submit">
+                  <Button type="submit" size="sm">
                     logout
                   </Button>
                 </Form>

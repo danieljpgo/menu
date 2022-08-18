@@ -1,4 +1,5 @@
 import { useMatches } from "@remix-run/react";
+import { redirect } from "@remix-run/server-runtime";
 import { useMemo } from "react";
 
 import type { User } from "~/server/user.server";
@@ -69,3 +70,46 @@ export function useUser(): User {
 export function validateEmail(email: unknown): email is string {
   return typeof email === "string" && email.length > 3 && email.includes("@");
 }
+
+/**
+ * Create a new Response with a permanently redirect using `301` as status code.
+ */
+export function redirectPermanently(
+  url: string,
+  init?: Omit<ResponseInit, "status">
+) {
+  return redirect(url, {
+    ...init,
+    status: 301,
+  });
+}
+
+// /**
+//  * Create a response receiving a JSON object with the status code 404.
+//  * @example
+//  * export let loader: LoaderFunction = async ({ request, params }) => {
+//  *   const user = await getUser(request);
+//  *   if (!db.exists(params.id)) throw notFound<BoundaryData>({ user });
+//  * }
+//  */
+//  export function notFound<Data = unknown>(
+//   data: Data,
+//   init?: Omit<ExtendedResponseInit, "status">
+// ) {
+//   return json<Data>(data, { ...init, status: 404 });
+// }
+
+// /**
+//  * Create a response receiving a JSON object with the status code 403.
+//  * @example
+//  * export let loader: LoaderFunction = async ({ request }) => {
+//  *   let user = await getUser(request);
+//  *   if (!user.idAdmin) throw forbidden<BoundaryData>({ user });
+//  * }
+//  */
+//  export function forbidden<Data = unknown>(
+//   data: Data,
+//   init?: Omit<ExtendedResponseInit, "status">
+// ) {
+//   return json<Data>(data, { ...init, status: 403 });
+// }
