@@ -57,7 +57,7 @@ export async function action({ request, params }: ActionArgs) {
   return redirect("/menu");
 }
 
-export default function RecipeDetails() {
+export default function MenuDetails() {
   const data = useLoaderData<typeof loader>();
 
   return (
@@ -82,7 +82,7 @@ export default function RecipeDetails() {
             }
             `}
           >
-            <div className="text-md">
+            <div>
               <Heading as="h4" weight="medium">
                 {recipe.name}
               </Heading>

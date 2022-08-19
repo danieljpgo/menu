@@ -4,6 +4,7 @@ import { Form, useCatch, useLoaderData } from "@remix-run/react";
 import { z } from "zod";
 import { prisma } from "~/server/db.server";
 import { requireUserId } from "~/server/session.server";
+import { Button, Heading, Shelf, Stack, Text } from "~/components";
 
 const schema = z.object({
   recipeId: z.string({ required_error: "recipeId not found" }),
@@ -24,14 +25,9 @@ export async function loader({ request, params }: LoaderArgs) {
       description: true,
       name: true,
       ingredients: {
-        select: {
-          amount: true,
-          ingredient: {
-            select: {
-              unit: true,
-              name: true,
-            },
-          },
+        include: {
+          Recipe: true,
+          ingredient: true,
         },
       },
     },
@@ -62,28 +58,43 @@ export default function RecipeDetails() {
   const data = useLoaderData<typeof loader>();
 
   return (
-    <div className="grid gap-4">
-      <h3 className="text-2xl font-bold">{data.recipe.name}</h3>
-      <p>{data.recipe.description}</p>
-      <ul className="grid gap-4">
-        {data.recipe.ingredients.map((a) => (
-          <li key={a.ingredient.name} className="flex gap-2">
-            <p>{a.ingredient.name}</p>
-            <p>{a.amount}</p>
-            <p>{a.ingredient.unit}</p>
-          </li>
-        ))}
-      </ul>
-      <hr className="" />
-      <Form method="post">
-        <button
-          type="submit"
-          className="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600 focus:bg-blue-400"
-        >
-          Delete
-        </button>
-      </Form>
-    </div>
+    <Stack gap="md">
+      <Stack>
+        <Heading as="h2" weight="semibold">
+          {data.recipe.name}
+        </Heading>
+        <Text>{data.recipe.description}</Text>
+      </Stack>
+      <Stack>
+        <Heading as="h3" weight="medium">
+          Ingredient
+        </Heading>
+        <Stack as="ul" gap="xs">
+          {data.recipe.ingredients.map((ingredient) => (
+            <Shelf key={ingredient.id}>
+              <Text>{ingredient.ingredient.name}</Text>-
+              <Text color="light">{ingredient.amount}</Text>
+              <Text color="light">{ingredient.ingredient.unit}</Text>
+            </Shelf>
+          ))}
+        </Stack>
+      </Stack>
+      <hr />
+      <div className="flex justify-between">
+        <div>
+          <Button size="sm" type="button" disabled>
+            {/* @TODO ICON? */}
+            edit
+          </Button>
+        </div>
+
+        <Form method="post">
+          <Button size="sm" type="submit">
+            Delete
+          </Button>
+        </Form>
+      </div>
+    </Stack>
   );
 }
 

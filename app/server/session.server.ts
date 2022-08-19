@@ -6,6 +6,9 @@ import { getUserById } from "~/server/user.server";
 
 invariant(process.env.SESSION_SECRET, "SESSION_SECRET must be set");
 
+// @TODO varidar aqui
+// Validar envs com zod
+
 export const sessionStorage = createCookieSessionStorage({
   cookie: {
     name: "__session",
@@ -41,6 +44,8 @@ export async function getUser(request: Request) {
 
   throw await logout(request);
 }
+
+// @TODO make better
 
 export async function requireUserId(
   request: Request,
