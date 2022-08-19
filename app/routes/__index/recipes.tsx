@@ -1,35 +1,36 @@
-import type { LoaderArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
-import { Link, NavLink, Outlet, useLoaderData } from "@remix-run/react";
-import { prisma } from "~/server/db.server";
-import { requireUserId } from "~/server/session.server";
+// import type { LoaderArgs } from "@remix-run/node";
+// import { json } from "@remix-run/node";
+// Link, NavLink,  useLoaderData
+import { Outlet } from "@remix-run/react";
+// import { prisma } from "~/server/db.server";
+// import { requireUserId } from "~/server/session.server";
 
-export async function loader({ request }: LoaderArgs) {
-  const userId = await requireUserId(request);
-  const recipes = await prisma.recipe.findMany({
-    where: { userId },
-    orderBy: { updatedAt: "desc" },
-    select: {
-      ingredients: {
-        select: {
-          ingredient: true,
-          amount: true,
-        },
-      },
-      id: true,
-      user: true,
-      name: true,
-    },
-  });
-  return json({ recipes });
-}
+// export async function loader({ request }: LoaderArgs) {
+//   const userId = await requireUserId(request);
+//   const recipes = await prisma.recipe.findMany({
+//     where: { userId },
+//     orderBy: { updatedAt: "desc" },
+//     select: {
+//       ingredients: {
+//         select: {
+//           ingredient: true,
+//           amount: true,
+//         },
+//       },
+//       id: true,
+//       user: true,
+//       name: true,
+//     },
+//   });
+//   return json({ recipes });
+// }
 
 export default function RecipesLayout() {
-  const data = useLoaderData<typeof loader>();
+  // const data = useLoaderData<typeof loader>();
 
   return (
     <>
-      <div className="h-full border-r w-80 bg-gray-50">
+      {/* <div className="h-full border-r w-80 bg-gray-50">
         <Link to="new" className="block p-4 text-xl text-blue-500">
           + new recipe
         </Link>
@@ -52,8 +53,8 @@ export default function RecipesLayout() {
             ))}
           </ol>
         )}
-      </div>
-      <div className="flex-1 p-6">
+      </div> */}
+      <div className="flex-1 px-6 py-4">
         <Outlet />
       </div>
     </>

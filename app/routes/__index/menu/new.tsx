@@ -5,7 +5,14 @@ import { z } from "zod";
 import { Form, useLoaderData } from "@remix-run/react";
 import { prisma } from "~/server/db.server";
 import { requireUserId } from "~/server/session.server";
-import { Button, TextField, SelectField, Stack } from "~/components";
+import {
+  Button,
+  TextField,
+  SelectField,
+  Stack,
+  Heading,
+  Text,
+} from "~/components";
 
 export const meta: MetaFunction = () => ({
   title: `Menu - New`,
@@ -55,8 +62,8 @@ export async function action({ request }: ActionArgs) {
   return redirect(`/menu/${menu.id}`);
 }
 
-export default function NewRecipe() {
-  const [ingredientsAmount, setIngredientsAmount] = React.useState(1);
+export default function NewMenu() {
+  const [recipesAmount, setRecipesAmount] = React.useState(1);
   const data = useLoaderData<typeof loader>();
   // const actionData = useActionData<typeof action>();
 
@@ -76,9 +83,19 @@ export default function NewRecipe() {
     <Form method="post">
       <div className="pb-32">
         <Stack gap="md">
+          <Heading as="h2" weight="semibold">
+            Menu
+          </Heading>
+          <Text>Create a new menu for your grocery.</Text>
+          <Heading as="h3" weight="semibold">
+            Details
+          </Heading>
           <TextField id="name" name="name" label="name" />
           <TextField id="description" name="description" label="description" />
-          {[...Array(ingredientsAmount).keys()].map((number) => (
+          <Heading as="h3" weight="semibold">
+            Recipes
+          </Heading>
+          {[...Array(recipesAmount).keys()].map((number) => (
             <div className="flex gap-2" key={number}>
               <div className="grid gap-2">
                 <SelectField
@@ -103,12 +120,12 @@ export default function NewRecipe() {
         <Button
           type="button"
           size="sm"
-          onClick={() => setIngredientsAmount((prev) => prev + 1)}
+          onClick={() => setRecipesAmount((prev) => prev + 1)}
         >
           +
         </Button>
         <Button type="submit" size="sm">
-          Save
+          save
         </Button>
       </div>
     </Form>
