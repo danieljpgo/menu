@@ -7,6 +7,42 @@ const ingredients = [
     name: "Batata Inglesa",
     unit: "g",
   },
+  {
+    name: "Carne Moida - Patinho",
+    unit: "g",
+  },
+  {
+    name: "Macarrão - Espaguete",
+    unit: "g",
+  },
+  {
+    name: "Arroz - Branco",
+    unit: "g",
+  },
+  {
+    name: "Feijão - Preto",
+    unit: "g",
+  },
+  {
+    name: "Feijão - Carioca",
+    unit: "g",
+  },
+  {
+    name: "Batata Palha",
+    unit: "g",
+  },
+  {
+    name: "Cenoura",
+    unit: "g",
+  },
+  {
+    name: "Milho - Lata",
+    unit: "g",
+  },
+  {
+    name: "Maionese - Pote",
+    unit: "g",
+  },
 ];
 
 const prisma = new PrismaClient();

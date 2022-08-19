@@ -11,13 +11,13 @@ model User {
   id    String @id @default(cuid())
   email String @unique
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
   password Password?
   notes    Note[]
   Recipe   Recipe[]
   Menu     Menu[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Password {
@@ -27,37 +27,25 @@ model Password {
   userId String @unique
 }
 
-model Note {
-  id    String @id @default(cuid())
-  title String
-  body  String
-
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  userId String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-}
-
 model Recipe {
-  id          String             @id @default(cuid())
+  id          String @id @default(cuid())
   name        String
   description String
+
   ingredients RecipeIngredient[]
-
-  Menu   Menu?   @relation(fields: [menuId], references: [id])
-  menuId String?
-
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  userId String
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId      String
+  Menu        Menu[]
+  menuId      String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 }
 
 model RecipeIngredient {
-  id           String     @id @default(cuid())
-  amount       Int
+  id     String @id @default(cuid())
+  amount Int
+
   ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
   ingredientId String
   Recipe       Recipe?    @relation(fields: [recipeId], references: [id])
@@ -75,11 +63,22 @@ model Ingredient {
 }
 
 model Menu {
-  id String @id @default(cuid())
-
+  id          String @id @default(cuid())
   name        String
   description String
-  recipes     Recipe[]
+
+  recipes Recipe[]
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId  String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model Note {
+  id    String @id @default(cuid())
+  title String
+  body  String
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   userId String
