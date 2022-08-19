@@ -82,15 +82,19 @@ async function seed() {
   }
 
   const currentIngredients = await prisma.ingredient.findMany();
-  await Promise.all(
-    currentIngredients.map((ingredient) =>
-      prisma.ingredient.delete({ where: { id: ingredient.id } })
-    )
+  // await Promise.all(
+  //   currentIngredients.map((ingredient) =>
+  //     prisma.ingredient.delete({ where: { id: ingredient.id } })
+  //   )
+  // );
+
+  const newSeeds = ingredients.filter((ingredient) =>
+    currentIngredients.some(({ name }) => ingredient.name === name)
   );
+
+  console.log(newSeeds);
   await Promise.all(
-    ingredients.map((ingredient) =>
-      prisma.ingredient.create({ data: ingredient })
-    )
+    newSeeds.map((ingredient) => prisma.ingredient.create({ data: ingredient }))
   );
 
   console.log(`Database has been seeded. 🌱`);
