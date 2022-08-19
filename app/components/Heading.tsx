@@ -19,12 +19,12 @@ const sizes = {
 } as const;
 
 const defaultSize = {
-  h1: "text-4xl",
-  h2: "text-3xl",
-  h3: "text-2xl",
-  h4: "text-xl",
-  h5: "text-lg",
-  h6: "text-md",
+  h1: "text-3xl",
+  h2: "text-2xl",
+  h3: "text-xl",
+  h4: "text-lg",
+  h5: "text-base",
+  h6: "text-sm",
 } as const;
 
 const colors = {
@@ -59,10 +59,10 @@ type HeadingProps = {
 
 export default function Heading(props: HeadingProps) {
   const {
-    as: tag = "h2",
     children,
-    color = "dark",
     size,
+    as: tag = "h2",
+    color = "dark",
     tracking = "normal",
     weight = "normal",
   } = props;

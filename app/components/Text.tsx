@@ -44,49 +44,64 @@ type TextProps = {
   size?: keyof typeof sizes;
   color?: keyof typeof colors;
   as?: keyof typeof tags;
-} & (
-  | {
-      as?: Exclude<keyof typeof tags, "b" | "strong" | "i">;
-      weight?: keyof typeof weights;
-      style?: keyof typeof styles;
-    }
-  | { as: "b" | "strong"; style?: keyof typeof styles }
-  | { as: "i" | "em"; weight?: keyof typeof weights }
-);
+  weight?: keyof typeof weights;
+  style?: keyof typeof styles;
+};
 
 export default function Text(props: TextProps) {
-  const { children, color = "base", as = "p", size = "base" } = props;
+  const {
+    children,
+    color = "base",
+    as = "p",
+    size = "base",
+    weight,
+    style,
+  } = props;
   const Tag = as;
-
-  const isBold = props.as === "b" || props.as === "strong";
-  const isItalic = props.as === "i" || props.as === "em";
-
-  const hasWeights = props.as === "em" || props.as === "i" || props.as === "p";
-  const hasStyles =
-    props.as === "b" || props.as === "strong" || props.as === "p";
 
   return (
     <Tag
       className={`
         ${sizes[size]}
         ${colors[color]}
-        ${
-          hasStyles
-            ? styles[props.style ?? "not-italic"]
-            : isItalic
-            ? styles["italic"]
-            : ""
-        }
-        ${
-          hasWeights
-            ? weights[props.weight ?? "normal"]
-            : isBold
-            ? weights["bold"]
-            : ""
-        }
+        ${weight ? weights[weight] : ""}
+        ${style ? styles[style] : ""}
+       
       `}
     >
       {children}
     </Tag>
   );
 }
+
+// @TODO
+// } & (
+//   | {
+//       as?: Exclude<keyof typeof tags, "b" | "strong" | "i">;
+//       weight?: keyof typeof weights;
+//       style?: keyof typeof styles;
+//     }
+//   | { as: "b" | "strong"; style?: keyof typeof styles }
+//   | { as: "i" | "em"; weight?: keyof typeof weights }
+// );
+
+// const isBold = props.as === "b" || props.as === "strong";
+// const isItalic = props.as === "i" || props.as === "em";
+
+// const hasWeights = props.as === "em" || props.as === "i" || props.as === "p";
+// const hasStyles =
+//   props.as === "b" || props.as === "strong" || props.as === "p";
+// ${
+//   hasStyles
+//     ? styles[props.style ?? "not-italic"]
+//     : isItalic
+//     ? styles["italic"]
+//     : ""
+// }
+// ${
+//   hasWeights
+//     ? weights[props.weight ?? "normal"]
+//     : isBold
+//     ? weights["bold"]
+//     : ""
+// }

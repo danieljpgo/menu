@@ -4,13 +4,11 @@ import { Form, useCatch, useLoaderData } from "@remix-run/react";
 import { z } from "zod";
 import { prisma } from "~/server/db.server";
 import { requireUserId } from "~/server/session.server";
+import { Button, Heading, Shelf, Stack, Text } from "~/components";
 
 export const meta: MetaFunction = ({ data }) => ({
   title: `Menu - ${data.menu.name}`,
 });
-
-// @TODO select the first from the list or reset redirecting to index?
-// @TODO create a good error screen
 
 const schema = z.object({
   menuId: z.string({ required_error: "menuId not found" }),
@@ -63,36 +61,68 @@ export default function RecipeDetails() {
   const data = useLoaderData<typeof loader>();
 
   return (
-    <div className="grid gap-4">
-      <h3 className="text-2xl font-bold">{data.menu.name}</h3>
-      <p>{data.menu.description}</p>
-      <ul className="grid gap-4">
-        {data.menu.recipes.map((a) => (
-          <li key={a.id} className="">
-            <p>{a.name}</p>
-            <p>{a.description}</p>
+    <Stack gap="md">
+      <Stack gap="sm">
+        <Heading as="h2" weight="semibold">
+          {data.menu.name}
+        </Heading>
+        <Text>{data.menu.description}</Text>
+      </Stack>
+      <Heading as="h3" weight="semibold">
+        Recipes
+      </Heading>
+      <Stack as="ul" gap="md">
+        {data.menu.recipes.map((recipe, index) => (
+          <li
+            key={recipe.id}
+            className={`grid gap-2 ${
+              index !== data.menu.recipes.length - 1
+                ? "border-b border-solid pb-4"
+                : ""
+            }
+            `}
+          >
+            <div className="text-md">
+              <Heading as="h4" weight="medium">
+                {recipe.name}
+              </Heading>
+              <Text>{recipe.description}</Text>
+            </div>
             <div>
-              {a.ingredients.map((b) => (
-                <div key={b.id} className="flex gap-2">
-                  <p>{b.ingredient.name}</p>
-                  <p>{b.amount}</p>
-                  <p>{b.ingredient.unit}</p>
-                </div>
+              <Heading as="h5" weight="medium">
+                Ingredients
+              </Heading>
+              {recipe.ingredients.map((data) => (
+                <Shelf key={data.id}>
+                  <Text>{data.ingredient.name}</Text>-
+                  <Text color="light">{data.amount}</Text>
+                  <Text color="light">{data.ingredient.unit}</Text>
+                </Shelf>
               ))}
             </div>
           </li>
         ))}
-      </ul>
-      <hr className="" />
-      <Form method="post">
-        <button
-          type="submit"
-          className="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600 focus:bg-blue-400"
-        >
-          Delete
-        </button>
-      </Form>
-    </div>
+      </Stack>
+
+      {/* <div className="fixed bottom-0 left-0 right-0 grid gap-4 px-6 pb-4 bg-white "> */}
+      <hr />
+      <div className="flex justify-between">
+        {/* <div className="flex justify-between"> */}
+        <div>
+          <Button size="sm" type="button" disabled>
+            {/* @TODO ICON? */}
+            edit
+          </Button>
+        </div>
+
+        <Form method="post">
+          <Button size="sm" type="submit">
+            Delete
+          </Button>
+        </Form>
+      </div>
+      {/* </div> */}
+    </Stack>
   );
 }
 
@@ -108,3 +138,6 @@ export function CatchBoundary() {
   }
   throw new Error(`Unexpected caught response with status: ${caught.status}`);
 }
+
+// @TODO select the first from the list or reset redirecting to index?
+// @TODO create a good error screen
