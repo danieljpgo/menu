@@ -162,7 +162,7 @@ export default function SignIn() {
           <Link
             className="text-blue-500 underline"
             to={{
-              pathname: "/auth/signup",
+              pathname: "/signup",
               search: searchParams.toString(),
             }}
           >
