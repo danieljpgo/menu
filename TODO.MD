@@ -18,12 +18,15 @@
 - [ ] Optimistic UI - Mutations
 - [ ] Handle focus - Forms
 - [ ] Error Boundary and CatchBoundary for all pages
+- [ ] Remove highlight click
 
 ## Performance
 
 ### Improvement
 
 - [ ] Excessive Query
+- [ ] Cache Headers
+- [ ] Log all loaders to map application flows
 
 ## DX
 
