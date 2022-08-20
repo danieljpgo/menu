@@ -83,25 +83,22 @@ export default function NewMenu() {
     <Form method="post">
       <div className="pb-32">
         <Stack gap="md">
-          <Heading as="h2" weight="semibold">
-            Menu
-          </Heading>
           <Text>Create a new menu for your grocery.</Text>
-          <Heading as="h3" weight="semibold">
+          <Heading as="h3" weight="medium">
             Details
           </Heading>
           <TextField id="name" name="name" label="name" />
           <TextField id="description" name="description" label="description" />
-          <Heading as="h3" weight="semibold">
+          <Heading as="h3" weight="medium">
             Recipes
           </Heading>
-          {[...Array(recipesAmount).keys()].map((number) => (
-            <div className="flex gap-2" key={number}>
-              <div className="grid gap-2">
+          <Stack as="ol" gap="md">
+            {[...Array(recipesAmount).keys()].map((number) => (
+              <li className="w-full" key={number}>
                 <SelectField
                   id={`recipe-${number}`}
                   name="recipe"
-                  label="recipe"
+                  label={`recipe - (${number + 1})`}
                 >
                   {data.recipes.map((recipe) => (
                     <option key={recipe.id} value={recipe.id}>
@@ -109,12 +106,11 @@ export default function NewMenu() {
                     </option>
                   ))}
                 </SelectField>
-              </div>
-            </div>
-          ))}
+              </li>
+            ))}
+          </Stack>
         </Stack>
       </div>
-      {/* <div className="fixed bottom-0 left-0 right-0 grid gap-4 px-6 pt-5 pb-4 bg-white border border-gray-100 border-solid shadow-lg"> */}
       <div className="fixed bottom-0 left-0 right-0 grid gap-4 px-6 pb-4 bg-white">
         <hr className="pb-0.5" />
         <Button
