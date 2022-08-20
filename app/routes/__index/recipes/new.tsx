@@ -2,16 +2,18 @@ import type { ActionArgs, LoaderArgs } from "@remix-run/node";
 import * as React from "react";
 import { json, redirect } from "@remix-run/node";
 import { z } from "zod";
-import { Form, useActionData, useLoaderData } from "@remix-run/react";
+import { Form, useLoaderData } from "@remix-run/react";
 import { prisma } from "~/server/db.server";
 import { requireUserId } from "~/server/session.server";
-
-// @TODO handle ingredient value selection
-// @TODO handle focus in better way
-// @TODO focus on input again when clicking add more
-// @TODO check the reason for the multiplies render
-// @TODO create a good error screen
-// @TODO repetitive ingredients
+import {
+  Button,
+  TextField,
+  SelectField,
+  Stack,
+  Heading,
+  Text,
+  Shelf,
+} from "~/components";
 
 const schema = z.object({
   name: z.string(),
@@ -40,7 +42,6 @@ export async function action({ request }: ActionArgs) {
   const userId = await requireUserId(request);
   const formData = await request.formData();
   const validation = schema.safeParse({
-    amount: formData.get("amount"),
     name: formData.get("name"),
     description: formData.get("description"),
     ingredients: formData.getAll("ingredient"),
@@ -49,6 +50,7 @@ export async function action({ request }: ActionArgs) {
 
   // @TODO better error handler
   if (!validation.success) {
+    console.log(validation.error.flatten());
     return json({ errors: { name: null, body: null } }, { status: 400 });
   }
 
@@ -86,83 +88,57 @@ export default function NewRecipe() {
   // }, [actionData]);
 
   return (
-    <Form
-      method="post"
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 16,
-        width: "100%",
-      }}
-    >
-      <label className="leading-4" htmlFor="name">
-        name
-      </label>
-      <input
-        id="name"
-        name="name"
-        className="flex-1 px-3 text-lg border-2 border-blue-500 rounded-md"
-        // aria-invalid={actionData?.errors?.name ? true : undefined}
-        // aria-errormessage={
-        // actionData?.errors?.name ? "title-error" : undefined
-        // }
-      />
-      <label className="leading-4" htmlFor="description">
-        description
-      </label>
-      <input
-        id="description"
-        name="description"
-        className="flex-1 px-3 text-lg border-2 border-blue-500 rounded-md"
-        // aria-invalid={actionData?.errors?.name ? true : undefined}
-        // aria-errormessage={
-        // actionData?.errors?.name ? "title-error" : undefined
-        // }
-      />
-      {[...Array(ingredientsAmount).keys()].map((number) => (
-        <div className="flex gap-2" key={number}>
-          <div className="grid gap-2">
-            <label className="leading-4" htmlFor={`ingredient-${number}`}>
-              ingredient
-            </label>
-            <select name="ingredient" id={`ingredient-${number}`}>
-              {data.ingredients.map((ingredient) => (
-                <option key={ingredient.id} value={ingredient.id}>
-                  {ingredient.name} - {ingredient.unit}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="grid gap-2">
-            <label className="leading-4" htmlFor={`amount-${number}`}>
-              amount
-            </label>
-            <input
-              id={`amount-${number}`}
-              name="amount"
-              className="flex-1 px-3 text-lg border-2 border-blue-500 rounded-md"
-              // aria-invalid={actionData?.errors?.name ? true : undefined}
-              // aria-errormessage={
-              // actionData?.errors?.name ? "title-error" : undefined
-              // }
-            />
-          </div>
-        </div>
-      ))}
-      <button
-        className="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600 focus:bg-blue-400"
-        onClick={() => setIngredientsAmount((prev) => prev + 1)}
-        type="button"
-      >
-        +
-      </button>
-      <div className="text-right">
-        <button
-          type="submit"
-          className="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600 focus:bg-blue-400"
+    <Form method="post">
+      <div className="pb-32">
+        <Stack gap="md">
+          <Text>create a new recipe for your menus.</Text>
+          <Heading as="h3" weight="medium">
+            Details
+          </Heading>
+          <TextField id="name" name="name" label="name" />
+          <TextField id="description" name="description" label="description" />
+          <Heading as="h3" weight="medium">
+            Ingredient
+          </Heading>
+          <Stack as="ol" gap="md">
+            {[...Array(ingredientsAmount).keys()].map((number) => (
+              <Shelf as="li" gap="md" key={number}>
+                <SelectField
+                  id={`ingredient-${number}`}
+                  name="ingredient"
+                  label={`ingredient`}
+                >
+                  {data.ingredients.map((ingredient) => (
+                    <option key={ingredient.id} value={ingredient.id}>
+                      {ingredient.name} - {ingredient.unit}
+                    </option>
+                  ))}
+                </SelectField>
+                <div className="w-1/4">
+                  <TextField
+                    id={`amount-${number}`}
+                    name="amount"
+                    label={`amount`}
+                  />
+                </div>
+              </Shelf>
+            ))}
+          </Stack>
+        </Stack>
+      </div>
+
+      <div className="fixed bottom-0 left-0 right-0 grid gap-4 px-6 pb-4 bg-white">
+        <hr className="pb-0.5" />
+        <Button
+          type="button"
+          size="sm"
+          onClick={() => setIngredientsAmount((prev) => prev + 1)}
         >
-          Save
-        </button>
+          +
+        </Button>
+        <Button type="submit" size="sm">
+          save
+        </Button>
       </div>
     </Form>
   );
@@ -209,3 +185,60 @@ export default function NewRecipe() {
         )}
       </div>
 */
+
+/* <label className="leading-4" htmlFor="name">
+        name
+      </label>
+      <input
+        id="name"
+        name="name"
+        className="flex-1 px-3 text-lg border-2 border-blue-500 rounded-md"
+        // aria-invalid={actionData?.errors?.name ? true : undefined}
+        // aria-errormessage={
+        // actionData?.errors?.name ? "title-error" : undefined
+        // }
+      /> */
+
+/* <label className="leading-4" htmlFor="description">
+        description
+      </label>
+      <input
+        id="description"
+        name="description"
+        className="flex-1 px-3 text-lg border-2 border-blue-500 rounded-md"
+        // aria-invalid={actionData?.errors?.name ? true : undefined}
+        // aria-errormessage={
+        // actionData?.errors?.name ? "title-error" : undefined
+        // }
+      /> */
+
+/* <label className="leading-4" htmlFor={`ingredient-${number}`}>
+        ingredient
+      </label>
+      <select name="ingredient" id={`ingredient-${number}`}>
+        {data.ingredients.map((ingredient) => (
+          <option key={ingredient.id} value={ingredient.id}>
+            {ingredient.name} - {ingredient.unit}
+          </option>
+        ))}
+      </select> */
+
+/* <label className="leading-4" htmlFor={`amount-${number}`}>
+        amount
+      </label>
+      <input
+        id={`amount-${number}`}
+        name="amount"
+        className="flex-1 px-3 text-lg border-2 border-blue-500 rounded-md"
+        // aria-invalid={actionData?.errors?.name ? true : undefined}
+        // aria-errormessage={
+        // actionData?.errors?.name ? "title-error" : undefined
+        // }
+      /> */
+
+// @TODO handle ingredient value selection
+// @TODO handle focus in better way
+// @TODO focus on input again when clicking add more
+// @TODO check the reason for the multiplies render
+// @TODO create a good error screen
+// @TODO repetitive ingredients

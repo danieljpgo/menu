@@ -60,7 +60,7 @@ export default function RecipeDetails() {
   return (
     <Stack gap="md">
       <Stack>
-        <Heading as="h2" weight="semibold">
+        <Heading as="h3" weight="medium">
           {data.recipe.name}
         </Heading>
         <Text>{data.recipe.description}</Text>
@@ -79,20 +79,20 @@ export default function RecipeDetails() {
           ))}
         </Stack>
       </Stack>
-      <hr />
-      <div className="flex justify-between">
-        <div>
-          <Button size="sm" type="button" disabled>
-            {/* @TODO ICON? */}
-            edit
-          </Button>
+      <div className="fixed bottom-0 left-0 right-0 grid gap-4 px-6 pb-4 bg-white ">
+        <hr />
+        <div className="flex justify-between">
+          <Form method="post">
+            <Button size="sm" type="submit">
+              Delete
+            </Button>
+          </Form>
+          <div>
+            <Button size="sm" type="button" disabled>
+              edit
+            </Button>
+          </div>
         </div>
-
-        <Form method="post">
-          <Button size="sm" type="submit">
-            Delete
-          </Button>
-        </Form>
       </div>
     </Stack>
   );

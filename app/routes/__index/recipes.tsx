@@ -1,60 +1,103 @@
-// import type { LoaderArgs } from "@remix-run/node";
-// import { json } from "@remix-run/node";
-// Link, NavLink,  useLoaderData
+import type { LoaderArgs } from "@remix-run/node";
+import { Link, useLoaderData, useMatches } from "@remix-run/react";
 import { Outlet } from "@remix-run/react";
-// import { prisma } from "~/server/db.server";
-// import { requireUserId } from "~/server/session.server";
+import { json } from "@remix-run/node";
+import { requireUserId } from "~/server/session.server";
+import { prisma } from "~/server/db.server";
+import { Heading, Shelf, Stack, Text } from "~/components";
 
-// export async function loader({ request }: LoaderArgs) {
-//   const userId = await requireUserId(request);
-//   const recipes = await prisma.recipe.findMany({
-//     where: { userId },
-//     orderBy: { updatedAt: "desc" },
-//     select: {
-//       ingredients: {
-//         select: {
-//           ingredient: true,
-//           amount: true,
-//         },
-//       },
-//       id: true,
-//       user: true,
-//       name: true,
-//     },
-//   });
-//   return json({ recipes });
-// }
+export async function loader({ request }: LoaderArgs) {
+  const userId = await requireUserId(request);
+  const recipes = await prisma.recipe.findMany({
+    where: { userId },
+    orderBy: { updatedAt: "desc" },
+    select: {
+      ingredients: {
+        select: {
+          ingredient: true,
+          amount: true,
+        },
+      },
+      id: true,
+      user: true,
+      name: true,
+      description: true,
+    },
+  });
+  return json({ recipes });
+}
 
 export default function RecipesLayout() {
-  // const data = useLoaderData<typeof loader>();
+  const data = useLoaderData<typeof loader>();
+  const matches = useMatches();
 
   return (
     <>
-      {/* <div className="h-full border-r w-80 bg-gray-50">
-        <Link to="new" className="block p-4 text-xl text-blue-500">
-          + new recipe
-        </Link>
-        <hr />
-        {data.recipes.length === 0 ? (
-          <p className="p-4">No recipes yet</p>
-        ) : (
-          <ol>
-            {data.recipes.map((recipe) => (
-              <li key={recipe.id}>
-                <NavLink
-                  to={recipe.id}
-                  className={({ isActive }) =>
-                    `block border-b p-4 text-xl ${isActive ? "bg-white" : ""}`
-                  }
-                >
-                  🍛 {recipe.name}
-                </NavLink>
-              </li>
-            ))}
-          </ol>
-        )}
-      </div> */}
-      <div className="flex-1 px-6 py-4">
+      <div className="grid gap-4 px-6 py-4">
+        <Stack gap="md">
+          <Heading as="h2" weight="semibold">
+            Recipes
+          </Heading>
+          {!matches.some((match) =>
+            [
+              "routes/__index/recipes/new",
+              "routes/__index/recipes/$recipeId",
+            ].includes(match.id)
+          ) && (
+            <>
+              <Heading as="h3" weight="medium">
+                Register
+              </Heading>
+              <div className="pb-16">
+                <Stack as="ul" gap="sm">
+                  {data.recipes.length === 0 && (
+                    <Text as="p" size="sm" weight="normal" color="dark">
+                      No recipes created yet,{" "}
+                      <Link
+                        to="new"
+                        className="text-sm font-medium text-blue-500 transform"
+                      >
+                        create a new recipe.
+                      </Link>
+                    </Text>
+                  )}
+                  {data.recipes.map((recipe, index) => (
+                    <li
+                      key={recipe.id}
+                      className={
+                        index !== data.recipes.length - 1
+                          ? "border-b border-solid pb-2"
+                          : ""
+                      }
+                    >
+                      <Link to={`${recipe.id}`}>
+                        <Stack gap="xs">
+                          <Heading as="h4" weight="medium">
+                            {recipe.name}
+                          </Heading>
+                          <Text>{recipe.description}</Text>
+                          <Heading as="h5" weight="medium">
+                            Ingredients:
+                          </Heading>
+                        </Stack>
+                        <ul>
+                          {recipe.ingredients.map((data, index) => (
+                            <Shelf as="li" key={data.ingredient.id}>
+                              <Text>-</Text>
+                              <Text>{data.ingredient.name}</Text>-
+                              <Text color="light">{data.amount}</Text>
+                              <Text color="light">{data.ingredient.unit}</Text>
+                            </Shelf>
+                          ))}
+                        </ul>
+                      </Link>
+                    </li>
+                  ))}
+                </Stack>
+              </div>
+            </>
+          )}
+        </Stack>
         <Outlet />
       </div>
     </>
@@ -80,3 +123,11 @@ export default function RecipesLayout() {
 </header>
 
 <main className="flex h-full bg-white"> */
+/* <div className="fixed bottom-0 left-0 right-0 grid gap-4 px-6 pb-4 bg-white">
+        <hr className="pb-0.5" />
+        <Link to="new">
+          <Button type="submit" size="sm">
+            +
+          </Button>
+        </Link>
+      </div> */
