@@ -98,7 +98,7 @@ export default function NewMenu() {
                 <SelectField
                   id={`recipe-${number}`}
                   name="recipe"
-                  label={`recipe - (${number + 1})`}
+                  label="recipe"
                 >
                   {data.recipes.map((recipe) => (
                     <option key={recipe.id} value={recipe.id}>
