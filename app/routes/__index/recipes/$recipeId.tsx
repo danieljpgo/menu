@@ -77,13 +77,11 @@ export default function RecipeDetails() {
               <Text>{ingredient.ingredient.name}</Text>-
               <Text color="light">
                 {ingredient.ingredient.unit === "p"
-                  ? portions.find((a) => a.value === ingredient.amount)
-                      ?.label ?? "?"
-                  : ingredient.amount}
+                  ? portions.find(
+                      (portion) => portion.value === ingredient.amount
+                    )?.label ?? "?"
+                  : `${ingredient.amount} ${ingredient.ingredient.unit}`}
               </Text>
-              {ingredient.ingredient.unit !== "p" && (
-                <Text color="light">{ingredient.ingredient.unit}</Text>
-              )}
             </Shelf>
           ))}
         </Stack>

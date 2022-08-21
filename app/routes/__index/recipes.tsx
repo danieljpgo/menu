@@ -5,6 +5,7 @@ import { json } from "@remix-run/node";
 import { requireUserId } from "~/server/session.server";
 import { prisma } from "~/server/db.server";
 import { Heading, Shelf, Stack, Text } from "~/components";
+import { portions } from "lib/ingredients";
 
 export async function loader({ request }: LoaderArgs) {
   const userId = await requireUserId(request);
@@ -81,12 +82,18 @@ export default function RecipesLayout() {
                           </Heading>
                         </Stack>
                         <ul>
-                          {recipe.ingredients.map((data, index) => (
-                            <Shelf as="li" key={data.ingredient.id}>
+                          {recipe.ingredients.map((ingredient) => (
+                            <Shelf as="li" key={ingredient.ingredient.id}>
                               <Text>-</Text>
-                              <Text>{data.ingredient.name}</Text>-
-                              <Text color="light">{data.amount}</Text>
-                              <Text color="light">{data.ingredient.unit}</Text>
+                              <Text>{ingredient.ingredient.name}</Text>-
+                              <Text color="light">
+                                {ingredient.ingredient.unit === "p"
+                                  ? portions.find(
+                                      (portion) =>
+                                        portion.value === ingredient.amount
+                                    )?.label ?? "?"
+                                  : `${ingredient.amount} ${ingredient.ingredient.unit}`}
+                              </Text>
                             </Shelf>
                           ))}
                         </ul>

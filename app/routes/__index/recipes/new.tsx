@@ -109,10 +109,10 @@ export default function NewRecipe() {
             Ingredient
           </Heading>
           <Stack as="ol" gap="md">
-            {[...Array(ingredientsId).keys()].map((number, index) => (
-              <Shelf as="li" gap="md" key={number}>
+            {ingredientsId.map((id, index) => (
+              <Shelf as="li" gap="md" key={index}>
                 <SelectField
-                  id={`ingredient-${number}`}
+                  id={`ingredient-${index}`}
                   name="ingredient"
                   label={`ingredient`}
                   onChange={(e) =>
@@ -133,13 +133,13 @@ export default function NewRecipe() {
                   {data.ingredients.find((a) => a.id === ingredientsId[index])
                     ?.unit === "p" ? (
                     <SelectField
-                      id={`amount-${number}`}
+                      id={`amount-${index}`}
                       name="amount"
                       label={`amount`}
                     >
                       {portions.map((sizes) => (
                         <option
-                          key={`amount-${number}-${sizes.label}`}
+                          key={`amount-${index}-${sizes.label}`}
                           value={sizes.value}
                         >
                           {sizes.label}
@@ -148,7 +148,7 @@ export default function NewRecipe() {
                     </SelectField>
                   ) : (
                     <NumberField
-                      id={`amount-${number}`}
+                      id={`amount-${index}`}
                       name="amount"
                       label={`amount`}
                     />
