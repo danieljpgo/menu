@@ -8,7 +8,7 @@ const ingredients = [
     unit: "g",
   },
   {
-    name: "Carne Moida - Patinho",
+    name: "Carne Moida",
     unit: "g",
   },
   {
@@ -16,7 +16,23 @@ const ingredients = [
     unit: "g",
   },
   {
+    name: "Macarrão - Parafuso",
+    unit: "g",
+  },
+  {
+    name: "Macarrão - Penne",
+    unit: "g",
+  },
+  {
     name: "Arroz - Branco",
+    unit: "g",
+  },
+  {
+    name: "Arroz - Arbóreo",
+    unit: "g",
+  },
+  {
+    name: "Arroz - Carnaroli",
     unit: "g",
   },
   {
@@ -25,6 +41,10 @@ const ingredients = [
   },
   {
     name: "Feijão - Carioca",
+    unit: "g",
+  },
+  {
+    name: "Feijão - Vermelho",
     unit: "g",
   },
   {
@@ -41,6 +61,34 @@ const ingredients = [
   },
   {
     name: "Maionese - Pote",
+    unit: "g",
+  },
+  {
+    name: "Tomate",
+    unit: "g",
+  },
+  {
+    name: "Cebola",
+    unit: "g",
+  },
+  {
+    name: "Abobora - Japonesa",
+    unit: "g",
+  },
+  {
+    name: "Frango - Peito",
+    unit: "g",
+  },
+  {
+    name: "Mussarela",
+    unit: "g",
+  },
+  {
+    name: "Presunto",
+    unit: "g",
+  },
+  {
+    name: "Farinha - Trigo",
     unit: "g",
   },
 ];
@@ -82,19 +130,27 @@ async function seed() {
   }
 
   const currentIngredients = await prisma.ingredient.findMany();
-  // await Promise.all(
-  //   currentIngredients.map((ingredient) =>
-  //     prisma.ingredient.delete({ where: { id: ingredient.id } })
-  //   )
-  // );
-
-  const newSeeds = ingredients.filter((ingredient) =>
-    currentIngredients.some(({ name }) => ingredient.name === name)
-  );
-
-  console.log(newSeeds);
+  const deleteIngredients = currentIngredients.reduce((acc, curr) => {
+    if (ingredients.some(({ name }) => name === curr.name)) {
+      return acc;
+    }
+    return [...acc, curr];
+  }, []);
   await Promise.all(
-    newSeeds.map((ingredient) => prisma.ingredient.create({ data: ingredient }))
+    deleteIngredients.map((ingredient) =>
+      prisma.ingredient.delete({ where: { id: ingredient.id } })
+    )
+  );
+  const seedIngredients = ingredients.reduce((acc, curr) => {
+    if (currentIngredients.some(({ name }) => name === curr.name)) {
+      return acc;
+    }
+    return [...acc, curr];
+  }, []);
+  await Promise.all(
+    seedIngredients.map((ingredient) =>
+      prisma.ingredient.create({ data: ingredient })
+    )
   );
 
   console.log(`Database has been seeded. 🌱`);
