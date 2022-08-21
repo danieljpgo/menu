@@ -19,12 +19,11 @@ const schema = z.object({
   name: z.string(),
   description: z.string(),
   amounts: z.array(
-    z
-      .string()
-      .transform((val) => Number(val))
-      .refine((val) => !Number.isNaN(val), {
-        message: "Expected number, received string",
-      })
+    z.string()
+    // .transform((val) => Number(val))
+    // .refine((val) => !Number.isNaN(val), {
+    //   message: "Expected number, received string",
+    // })
     // @TODO create a abstraction
   ),
   ingredients: z.array(z.string()),
@@ -72,8 +71,11 @@ export async function action({ request }: ActionArgs) {
 }
 
 export default function NewRecipe() {
-  const [ingredientsAmount, setIngredientsAmount] = React.useState(1);
+  // const [ingredients, setIngredients] = React.useState<Array<string>>([]);
+  const [ingredientsId, setIngredientsId] = React.useState<Array<string>>([""]);
   const data = useLoaderData<typeof loader>();
+
+  // console.log(ingredients);
   // const actionData = useActionData<typeof action>();
 
   // const titleRef = React.useRef<HTMLInputElement>(null);
@@ -101,12 +103,19 @@ export default function NewRecipe() {
             Ingredient
           </Heading>
           <Stack as="ol" gap="md">
-            {[...Array(ingredientsAmount).keys()].map((number) => (
+            {[...Array(ingredientsId).keys()].map((number, index) => (
               <Shelf as="li" gap="md" key={number}>
                 <SelectField
                   id={`ingredient-${number}`}
                   name="ingredient"
                   label={`ingredient`}
+                  onChange={(e) =>
+                    setIngredientsId((prev) =>
+                      prev.map((data, i) =>
+                        i === index ? e.target.value : data
+                      )
+                    )
+                  }
                 >
                   {data.ingredients.map((ingredient) => (
                     <option key={ingredient.id} value={ingredient.id}>
@@ -115,11 +124,31 @@ export default function NewRecipe() {
                   ))}
                 </SelectField>
                 <div className="w-1/4">
-                  <TextField
-                    id={`amount-${number}`}
-                    name="amount"
-                    label={`amount`}
-                  />
+                  {data.ingredients.find((a) => a.id === ingredientsId[index])
+                    ?.unit === "p" ? (
+                    <SelectField
+                      id={`amount-${number}`}
+                      name="amount"
+                      label={`amount`}
+                    >
+                      {["1/4", "2/4", "3/4", "1/3", "2/3", "1/2"].map(
+                        (sizes) => (
+                          <option
+                            key={`amount-${number}-${sizes}`}
+                            value={sizes}
+                          >
+                            {sizes}
+                          </option>
+                        )
+                      )}
+                    </SelectField>
+                  ) : (
+                    <TextField
+                      id={`amount-${number}`}
+                      name="amount"
+                      label={`amount`}
+                    />
+                  )}
                 </div>
               </Shelf>
             ))}
@@ -132,7 +161,7 @@ export default function NewRecipe() {
         <Button
           type="button"
           size="sm"
-          onClick={() => setIngredientsAmount((prev) => prev + 1)}
+          onClick={() => setIngredientsId((prev) => [...prev, ""])}
         >
           +
         </Button>

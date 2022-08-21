@@ -69,7 +69,7 @@ const ingredients = [
   },
   {
     name: "Cebola",
-    unit: "g",
+    unit: "p",
   },
   {
     name: "Abobora - Japonesa",
@@ -131,7 +131,11 @@ async function seed() {
 
   const currentIngredients = await prisma.ingredient.findMany();
   const deleteIngredients = currentIngredients.reduce((acc, curr) => {
-    if (ingredients.some(({ name }) => name === curr.name)) {
+    if (
+      ingredients.some(
+        ({ name, unit }) => name === curr.name && unit === curr.unit
+      )
+    ) {
       return acc;
     }
     return [...acc, curr];
@@ -142,7 +146,11 @@ async function seed() {
     )
   );
   const seedIngredients = ingredients.reduce((acc, curr) => {
-    if (currentIngredients.some(({ name }) => name === curr.name)) {
+    if (
+      currentIngredients.some(
+        ({ name, unit }) => name === curr.name && unit === curr.unit
+      )
+    ) {
       return acc;
     }
     return [...acc, curr];

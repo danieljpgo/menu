@@ -9,6 +9,7 @@ type SelectFieldProps = {
   disabled?: boolean;
   children?: React.ReactNode;
   required?: boolean;
+  onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
 };
 
 export default function SelectField(props: SelectFieldProps) {
@@ -21,6 +22,7 @@ export default function SelectField(props: SelectFieldProps) {
     required = false,
     value,
     defaultValue,
+    onChange,
   } = props;
 
   return (
@@ -35,6 +37,7 @@ export default function SelectField(props: SelectFieldProps) {
         defaultValue={defaultValue}
         required={required}
         disabled={disabled}
+        onChange={onChange}
       >
         {children}
       </Select>
