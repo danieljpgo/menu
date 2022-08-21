@@ -5,6 +5,7 @@ import { z } from "zod";
 import { prisma } from "~/server/db.server";
 import { requireUserId } from "~/server/session.server";
 import { Button, Heading, Shelf, Stack, Text } from "~/components";
+import { portions } from "lib/ingredients";
 
 export const meta: MetaFunction = ({ data }) => ({
   title: `Menu - ${data.menu.name}`,
@@ -92,12 +93,19 @@ export default function MenuDetails() {
                   Ingredients
                 </Heading>
                 <ul>
-                  {recipe.ingredients.map((data) => (
-                    <Shelf as="li" key={data.id}>
+                  {recipe.ingredients.map((ingredient) => (
+                    <Shelf as="li" key={ingredient.id}>
                       <Text>-</Text>
-                      <Text>{data.ingredient.name}</Text>-
-                      <Text color="light">{data.amount}</Text>
-                      <Text color="light">{data.ingredient.unit}</Text>
+                      <Text>{ingredient.ingredient.name}</Text>-
+                      <Text color="light">
+                        {ingredient.ingredient.unit === "p"
+                          ? portions.find((a) => a.value === ingredient.amount)
+                              ?.label ?? "?"
+                          : ingredient.amount}
+                      </Text>
+                      {ingredient.ingredient.unit !== "p" && (
+                        <Text color="light">{ingredient.ingredient.unit}</Text>
+                      )}
                     </Shelf>
                   ))}
                 </ul>

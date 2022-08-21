@@ -5,6 +5,7 @@ import { z } from "zod";
 import { prisma } from "~/server/db.server";
 import { requireUserId } from "~/server/session.server";
 import { Button, Heading, Shelf, Stack, Text } from "~/components";
+import { portions } from "lib/ingredients";
 
 const schema = z.object({
   recipeId: z.string({ required_error: "recipeId not found" }),
@@ -72,9 +73,17 @@ export default function RecipeDetails() {
         <Stack as="ul" gap="xs">
           {data.recipe.ingredients.map((ingredient) => (
             <Shelf key={ingredient.id}>
+              <Text>-</Text>
               <Text>{ingredient.ingredient.name}</Text>-
-              <Text color="light">{ingredient.amount}</Text>
-              <Text color="light">{ingredient.ingredient.unit}</Text>
+              <Text color="light">
+                {ingredient.ingredient.unit === "p"
+                  ? portions.find((a) => a.value === ingredient.amount)
+                      ?.label ?? "?"
+                  : ingredient.amount}
+              </Text>
+              {ingredient.ingredient.unit !== "p" && (
+                <Text color="light">{ingredient.ingredient.unit}</Text>
+              )}
             </Shelf>
           ))}
         </Stack>
