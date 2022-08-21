@@ -13,17 +13,20 @@ import {
   Heading,
   Text,
   Shelf,
+  NumberField,
 } from "~/components";
+import { portions } from "lib/ingredients";
 
 const schema = z.object({
   name: z.string(),
   description: z.string(),
   amounts: z.array(
-    z.string()
-    // .transform((val) => Number(val))
-    // .refine((val) => !Number.isNaN(val), {
-    //   message: "Expected number, received string",
-    // })
+    z
+      .string()
+      .transform((val) => Number(val))
+      .refine((val) => !Number.isNaN(val), {
+        message: "Expected number, received string",
+      })
     // @TODO create a abstraction
   ),
   ingredients: z.array(z.string()),
@@ -54,6 +57,9 @@ export async function action({ request }: ActionArgs) {
   }
 
   const form = validation.data;
+
+  console.log(typeof form.amounts[0]);
+
   const recipe = await prisma.recipe.create({
     data: {
       name: form.name,
@@ -131,19 +137,17 @@ export default function NewRecipe() {
                       name="amount"
                       label={`amount`}
                     >
-                      {["1/4", "2/4", "3/4", "1/3", "2/3", "1/2"].map(
-                        (sizes) => (
-                          <option
-                            key={`amount-${number}-${sizes}`}
-                            value={sizes}
-                          >
-                            {sizes}
-                          </option>
-                        )
-                      )}
+                      {portions.map((sizes) => (
+                        <option
+                          key={`amount-${number}-${sizes.label}`}
+                          value={sizes.value}
+                        >
+                          {sizes.label}
+                        </option>
+                      ))}
                     </SelectField>
                   ) : (
-                    <TextField
+                    <NumberField
                       id={`amount-${number}`}
                       name="amount"
                       label={`amount`}
