@@ -13,8 +13,9 @@ model User {
 
   password Password?
   notes    Note[]
-  Recipe   Recipe[]
-  Menu     Menu[]
+  recipes  Recipe[]
+  menus    Menu[]
+  shop     Shop?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -27,16 +28,55 @@ model Password {
   userId String @unique
 }
 
+model Shop {
+  id String @id @default(cuid())
+
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId              String               @unique
+  menus               Menu[]
+  purchaseIngredients PurchaseIngredient[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model PurchaseIngredient {
+  id     String  @id @default(cuid())
+  bought Boolean @default(false)
+
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  ingredientId String
+  shop         Shop       @relation(fields: [shopId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  shopId       String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model Menu {
+  id          String @id @default(cuid())
+  name        String
+  description String
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId  String
+  shop    Shop?    @relation(fields: [shopId], references: [id])
+  shopId  String?
+  recipes Recipe[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
 model Recipe {
   id          String @id @default(cuid())
   name        String
   description String
 
-  ingredients RecipeIngredient[]
   user        User               @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   userId      String
-  Menu        Menu[]
-  menuId      String?
+  menus       Menu[]
+  ingredients RecipeIngredient[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -46,33 +86,22 @@ model RecipeIngredient {
   id     String @id @default(cuid())
   amount Float
 
+  recipe       Recipe     @relation(fields: [recipeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  recipeId     String
   ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   ingredientId String
-  Recipe       Recipe?    @relation(fields: [recipeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  recipeId     String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 }
 
 model Ingredient {
-  id               String             @id @default(cuid())
-  name             String
-  unit             String
-  RecipeIngredient RecipeIngredient[]
-}
+  id   String @id @default(cuid())
+  name String
+  unit String
 
-model Menu {
-  id          String @id @default(cuid())
-  name        String
-  description String
-
-  recipes Recipe[]
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  userId  String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  recipeIngredients   RecipeIngredient[]
+  purchaseIngredients PurchaseIngredient[]
 }
 
 model Note {
