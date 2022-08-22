@@ -1,21 +1,21 @@
 import type { ActionArgs, LoaderArgs } from "@remix-run/node";
-import * as React from "react";
 import { json, redirect } from "@remix-run/node";
-import { z } from "zod";
 import { Form, useLoaderData } from "@remix-run/react";
-import { prisma } from "~/server/db.server";
-import { requireUserId } from "~/server/session.server";
+import { portions } from "lib/ingredients";
+import * as React from "react";
+import { z } from "zod";
 import {
   Button,
-  TextField,
-  SelectField,
-  Stack,
   Heading,
-  Text,
-  Shelf,
   NumberField,
+  SelectField,
+  Shelf,
+  Stack,
+  Text,
+  TextField,
 } from "~/components";
-import { portions } from "lib/ingredients";
+import { prisma } from "~/server/db.server";
+import { requireUserId } from "~/server/session.server";
 
 const schema = z.object({
   name: z.string(),
@@ -57,9 +57,6 @@ export async function action({ request }: ActionArgs) {
   }
 
   const form = validation.data;
-
-  console.log(typeof form.amounts[0]);
-
   const recipe = await prisma.recipe.create({
     data: {
       name: form.name,
