@@ -7,11 +7,13 @@ const sizes = {
 };
 
 type ButtonProps = {
-  children: string | React.ReactNode;
-  size?: "sm" | "md";
-  disabled?: boolean;
+  children: string;
+  disabled?: React.ButtonHTMLAttributes<HTMLButtonElement>["disabled"];
   loading?: boolean;
-  type?: "submit" | "reset" | "button";
+  name?: React.ButtonHTMLAttributes<HTMLButtonElement>["name"];
+  value?: React.ButtonHTMLAttributes<HTMLButtonElement>["value"];
+  size?: "sm" | "md";
+  type?: React.ButtonHTMLAttributes<HTMLButtonElement>["type"];
   onClick?: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
 };
 
@@ -19,6 +21,8 @@ export default function Button(props: ButtonProps) {
   const {
     children,
     type = "button",
+    name,
+    value,
     disabled,
     loading,
     size = "md",
@@ -27,6 +31,8 @@ export default function Button(props: ButtonProps) {
 
   return (
     <button
+      name={name}
+      value={value}
       type={type}
       disabled={disabled || loading}
       className={`
