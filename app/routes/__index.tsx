@@ -23,8 +23,8 @@ export default function Index() {
           <nav>
             <ul className="flex items-center gap-4">
               <li>
-                <NavLink to="/" prefetch="render">
-                  home
+                <NavLink to="/shop" prefetch="render">
+                  shop
                 </NavLink>
               </li>
               <li>
