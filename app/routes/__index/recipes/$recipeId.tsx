@@ -1,11 +1,11 @@
 import type { ActionArgs, LoaderArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { Form, useCatch, useLoaderData } from "@remix-run/react";
+import { portions } from "lib/ingredients";
 import { z } from "zod";
+import { Button, Heading, Shelf, Stack, Text } from "~/components";
 import { prisma } from "~/server/db.server";
 import { requireUserId } from "~/server/session.server";
-import { Button, Heading, Shelf, Stack, Text } from "~/components";
-import { portions } from "lib/ingredients";
 
 const schema = z.object({
   recipeId: z.string({ required_error: "recipeId not found" }),
@@ -27,7 +27,7 @@ export async function loader({ request, params }: LoaderArgs) {
       name: true,
       ingredients: {
         include: {
-          Recipe: true,
+          recipe: true,
           ingredient: true,
         },
       },
