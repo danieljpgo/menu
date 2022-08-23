@@ -28,13 +28,13 @@ export default function Index() {
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/recipes" prefetch="render">
-                  recipes
+                <NavLink to="/menu" prefetch="render">
+                  menus
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/menu" prefetch="render">
-                  menus
+                <NavLink to="/recipes" prefetch="render">
+                  recipes
                 </NavLink>
               </li>
               <li>

@@ -1,4 +1,4 @@
-import type { ActionArgs, LoaderArgs } from "@remix-run/node";
+import type { ActionArgs, LoaderArgs, MetaFunction } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { Form, useLoaderData } from "@remix-run/react";
 import { portions } from "lib/ingredients";
@@ -16,6 +16,10 @@ import {
 } from "~/components";
 import { prisma } from "~/server/db.server";
 import { requireUserId } from "~/server/session.server";
+
+export const meta: MetaFunction = () => ({
+  title: `Menu - Create Recipe`,
+});
 
 const schema = z.object({
   name: z.string(),
@@ -52,7 +56,6 @@ export async function action({ request }: ActionArgs) {
 
   // @TODO better error handler
   if (!validation.success) {
-    console.log(validation.error.flatten());
     return json({ errors: { name: null, body: null } }, { status: 400 });
   }
 
@@ -163,10 +166,11 @@ export default function NewRecipe() {
           type="button"
           size="sm"
           onClick={() => setIngredientsId((prev) => [...prev, ""])}
+          fill
         >
           +
         </Button>
-        <Button type="submit" size="sm">
+        <Button type="submit" size="sm" fill>
           save
         </Button>
       </div>

@@ -13,7 +13,7 @@ const schema = z.object({
 });
 
 export const meta: MetaFunction = () => ({
-  title: `Menu - New`,
+  title: `Menu - Create Shop`,
 });
 
 export async function loader({ request }: LoaderArgs) {

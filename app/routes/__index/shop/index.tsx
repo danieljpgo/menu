@@ -16,7 +16,7 @@ export const meta: MetaFunction = () => ({
 
 const schema = z.object({
   shopId: z.string({ required_error: "shopId not found" }),
-  action: z.enum(["save", "delete", "edit"], {
+  action: z.enum(["save", "delete"], {
     required_error: "action not found",
   }),
 });
@@ -129,16 +129,18 @@ export default function Shop() {
 
   return (
     <>
-      <Stack gap="md">
-        <Form method="post">
+      <Form method="post">
+        <Stack gap="md">
           <Input type="hidden" name="shopId" value={data.shop.id} />
-          <div className="flex items-center justify-between">
+          <div className="flex justify-between">
             <Heading as="h3" weight="medium">
               Ingredient
             </Heading>
-            <Button size="sm" type="submit" name="action" value="save">
-              save
-            </Button>
+            <div className="-mt-1">
+              <Button size="sm" type="submit" name="action" value="save">
+                save
+              </Button>
+            </div>
           </div>
           <Stack as="ul" gap="xs">
             {data.shop?.purchases.map((purchase) => (
@@ -168,8 +170,8 @@ export default function Shop() {
               </li>
             ))}
           </Stack>
-        </Form>
-      </Stack>
+        </Stack>
+      </Form>
       <div className="fixed bottom-0 left-0 right-0 grid gap-4 px-6 pb-4 bg-white">
         <hr />
         <Form method="post" className="flex justify-between">
@@ -177,9 +179,11 @@ export default function Shop() {
           <Button size="sm" type="submit" name="action" value="delete">
             Delete
           </Button>
-          <Button size="sm" type="button" name="action" value="edit">
-            edit
-          </Button>
+          <Link to="edit">
+            <Button size="sm" type="button">
+              edit
+            </Button>
+          </Link>
         </Form>
       </div>
     </>
