@@ -19,6 +19,7 @@
 - [ ] Handle focus - Forms
 - [ ] Error Boundary and CatchBoundary for all pages
 - [ ] Remove highlight click
+- [ ] Prefetching links
 
 ## Performance
 
@@ -27,6 +28,7 @@
 - [ ] Excessive Query
 - [ ] Cache Headers
 - [ ] Log all loaders to map application flows
+- [ ] Prefetching links
 
 ## DX
 
@@ -34,3 +36,4 @@
 
 - [ ] File - user.server
 - [ ] File - session.server
+- [ ] new.tsx -> create ->
