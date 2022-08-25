@@ -1,11 +1,10 @@
 import type { LoaderArgs } from "@remix-run/node";
-import { Link, useLoaderData, useMatches } from "@remix-run/react";
-import { Outlet } from "@remix-run/react";
 import { json } from "@remix-run/node";
-import { requireUserId } from "~/server/session.server";
-import { prisma } from "~/server/db.server";
-import { Heading, Shelf, Stack, Text } from "~/components";
+import { Link, Outlet, useLoaderData, useMatches } from "@remix-run/react";
 import { portions } from "lib/ingredients";
+import { Heading, Shelf, Stack, Text } from "~/components";
+import { prisma } from "~/server/db.server";
+import { requireUserId } from "~/server/session.server";
 
 export async function loader({ request }: LoaderArgs) {
   const userId = await requireUserId(request);
@@ -41,8 +40,8 @@ export default function RecipesLayout() {
           </Heading>
           {!matches.some((match) =>
             [
-              "routes/__index/recipes/new",
-              "routes/__index/recipes/$recipeId",
+              "routes/__app/recipes/new",
+              "routes/__app/recipes/$recipeId",
             ].includes(match.id)
           ) && (
             <>

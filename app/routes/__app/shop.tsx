@@ -129,9 +129,7 @@ export default function Shop() {
         Shop
       </Heading>
       {!matches.some((match) =>
-        ["routes/__index/shop/new", "routes/__index/shop/edit"].includes(
-          match.id
-        )
+        ["routes/__app/shop/new", "routes/__app/shop/edit"].includes(match.id)
       ) && (
         <>
           {!data.shop ? (

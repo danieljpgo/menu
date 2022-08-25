@@ -6,7 +6,7 @@ export default function Recipes() {
     <div className="fixed bottom-0 left-0 right-0 grid gap-4 px-6 pb-4 bg-white">
       <hr className="pb-0.5" />
       <Link to="new">
-        <Button type="submit" size="sm">
+        <Button type="submit" size="sm" fill>
           +
         </Button>
       </Link>
