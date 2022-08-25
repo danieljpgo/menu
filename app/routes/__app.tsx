@@ -9,13 +9,13 @@ export default function Index() {
     <>
       <header className="relative bg-white shadow-sm">
         <div
-          className="container flex items-center justify-between px-6 py-4 mx-auto"
+          className="container mx-auto flex items-center justify-between px-6 py-4"
           style={{ minHeight: 72 }}
         >
           <h1>
             <Link
               to="/"
-              className="text-xl antialiased font-semibold tracking-tight text-gray-800 transition-colors duration-200 transform hover:text-gray-700 lg:text-2xl"
+              className="transform text-xl font-semibold tracking-tight text-gray-800 antialiased transition-colors duration-200 hover:text-gray-700 lg:text-2xl"
             >
               Menu
             </Link>
@@ -43,7 +43,7 @@ export default function Index() {
               </li>
               <li className="hidden md:flex">
                 {/* @TODO <Text/> */}
-                <p className="text-sm font-medium text-gray-700 transition-colors duration-200 transform hover:text-blue-500">
+                <p className="transform text-sm font-medium text-gray-700 transition-colors duration-200 hover:text-blue-500">
                   {user.email}
                 </p>
               </li>
