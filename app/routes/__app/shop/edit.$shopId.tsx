@@ -13,7 +13,7 @@ const schema = z.object({
 });
 
 const formSchema = z.object({
-  menus: z.array(z.string()),
+  menusId: z.array(z.string()),
   shopId: z.string({ required_error: "shopId not found" }),
 });
 
@@ -41,34 +41,55 @@ export async function loader({ request, params }: LoaderArgs) {
 }
 
 export async function action({ request, params }: ActionArgs) {
-  await requireUserId(request);
+  const userId = await requireUserId(request);
 
   const formData = await request.formData();
   const validation = formSchema.safeParse({
-    menus: formData.getAll("menu"), //rename to menusId
+    menusId: formData.getAll("menu"),
     shopId: params.shopId,
   });
 
-  // @TODO better error handler
   if (!validation.success) {
-    return json({ errors: { name: null, body: null } }, { status: 400 });
+    return json({ errors: { name: null, body: null } }, { status: 400 }); // @TODO better error handler
   }
-
   const form = validation.data;
-
   const shop = await prisma.shop.findUnique({
     where: { id: validation.data.shopId },
-    include: { menus: true },
+    include: {
+      menus: {
+        include: {
+          recipes: {
+            include: {
+              ingredients: {
+                select: {
+                  ingredient: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      purchaseIngredients: true,
+    },
   });
 
   if (!shop) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  const menus = await prisma.menu.findMany({
-    where: {
-      id: { in: form.menus },
-    },
+  const disconnectMenus = shop.menus.filter(
+    (menu) => !form.menusId.some((id) => id === menu.id)
+  );
+  const unchangedMenus = shop.menus.filter((menu) =>
+    form.menusId.some((id) => id === menu.id)
+  );
+  const connectMenus = form.menusId.filter(
+    (id) => !shop.menus.some((menu) => menu.id === id)
+  );
+  const newMenusId = [...unchangedMenus.map(({ id }) => id), ...connectMenus];
+
+  const newMenus = await prisma.menu.findMany({
+    where: { id: { in: newMenusId } },
     select: {
       recipes: {
         select: {
@@ -87,20 +108,29 @@ export async function action({ request, params }: ActionArgs) {
     },
   });
 
-  const purchaseIngredients = new Set<Ingredient["id"]>();
-  menus.forEach((menu) =>
+  const newPurchaseIngredients = new Set<Ingredient["id"]>();
+  newMenus.forEach((menu) =>
     menu.recipes.forEach((recipe) =>
       recipe.ingredients.forEach((ingredient) =>
-        purchaseIngredients.add(ingredient.ingredient.id)
+        newPurchaseIngredients.add(ingredient.ingredient.id)
       )
     )
   );
 
-  const disconnectMenus = shop.menus.filter(
-    (menu) => !form.menus.some((id) => id === menu.id)
+  const currentPurchaseIngredients = new Set<Ingredient["id"]>();
+  shop.menus.forEach((menu) =>
+    menu.recipes.forEach((recipe) =>
+      recipe.ingredients.forEach((ingredient) =>
+        currentPurchaseIngredients.add(ingredient.ingredient.id)
+      )
+    )
   );
-  const connectMenus = form.menus.filter(
-    (id) => !shop.menus.some((menu) => menu.id === id)
+
+  const deletePurchases = Array.from(currentPurchaseIngredients).filter(
+    (id) => !Array.from(newPurchaseIngredients).some((a) => id === a)
+  );
+  const createPurchases = Array.from(newPurchaseIngredients).filter(
+    (id) => !Array.from(currentPurchaseIngredients).some((a) => a === id)
   );
 
   await prisma.shop.update({
@@ -110,16 +140,14 @@ export async function action({ request, params }: ActionArgs) {
         disconnect: disconnectMenus.map((menu) => ({ id: menu.id })),
         connect: connectMenus.map((id) => ({ id })),
       },
-      // {
-
-      // : form.menus.map((id) => ({ id })),
-      // connect: form.menus.map((id) => ({ id })),
-      // },
-      // purchaseIngredients: {
-      //   // create: Array.from(purchaseIngredients).map((id) => ({
-      //   //   ingredient: { connect: { id } },
-      //   // })),
-      // },
+      purchaseIngredients: {
+        deleteMany: deletePurchases.map((id) => ({
+          ingredientId: id,
+        })),
+        create: createPurchases.map((id) => ({
+          ingredient: { connect: { id } },
+        })),
+      },
     },
   });
   return redirect(`/shop`);

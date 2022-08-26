@@ -37,3 +37,8 @@
 - [ ] File - user.server
 - [ ] File - session.server
 - [ ] new.tsx -> create ->
+
+Fix
+
+- [ ] Logout router
+- [ ] Check Auth for all router
