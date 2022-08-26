@@ -200,26 +200,43 @@ export default function Shop() {
                   </Stack>
                 </Stack>
               </Form>
-              <div className="fixed bottom-0 left-0 right-0 grid gap-4 px-6 pb-4 bg-white">
-                <hr />
-                <Form method="post" className="flex justify-between">
-                  <Input type="hidden" name="shopId" value={data.shop.id} />
-                  <Button size="sm" type="submit" name="action" value="delete">
-                    Delete
+            </>
+          )}
+          <div className="fixed bottom-0 left-0 right-0 grid gap-4 px-6 pb-4 bg-white">
+            <hr />
+            {data.shop ? (
+              <Form method="post">
+                <Input type="hidden" name="shopId" value={data.shop.id} />
+                <div className="grid grid-cols-2 gap-4">
+                  <Button
+                    size="sm"
+                    type="submit"
+                    name="action"
+                    value="delete"
+                    fill
+                  >
+                    delete
                   </Button>
                   <Link
                     to={{
                       pathname: `edit/${data.shop.id}`,
                     }}
+                    className="grid w-full"
                   >
-                    <Button size="sm" type="button">
+                    <Button size="sm" type="button" fill>
                       edit
                     </Button>
                   </Link>
-                </Form>
-              </div>
-            </>
-          )}
+                </div>
+              </Form>
+            ) : (
+              <Link to="new" className="grid w-full">
+                <Button size="sm" type="button" fill>
+                  +
+                </Button>
+              </Link>
+            )}
+          </div>
         </>
       )}
       <Outlet />

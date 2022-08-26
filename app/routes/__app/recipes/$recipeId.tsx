@@ -92,18 +92,16 @@ export default function RecipeDetails() {
       </Stack>
       <div className="fixed bottom-0 left-0 right-0 grid gap-4 px-6 pb-4 bg-white ">
         <hr />
-        <div className="flex justify-between">
-          <Form method="post">
-            <Button size="sm" type="submit">
+        <Shelf gap="md">
+          <Form method="post" className="w-full">
+            <Button size="sm" type="submit" fill>
               Delete
             </Button>
           </Form>
-          <div>
-            <Button size="sm" type="button" disabled>
-              edit
-            </Button>
-          </div>
-        </div>
+          <Button size="sm" type="button" disabled fill>
+            edit
+          </Button>
+        </Shelf>
       </div>
     </Stack>
   );

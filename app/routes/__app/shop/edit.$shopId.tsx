@@ -227,10 +227,11 @@ export default function NewShop() {
           type="button"
           size="sm"
           onClick={() => setMenus((prev) => [...prev, data.menus[0]])}
+          fill
         >
           +
         </Button>
-        <Button type="submit" size="sm" disabled={menus.length === 0}>
+        <Button type="submit" size="sm" disabled={menus.length === 0} fill>
           save
         </Button>
       </div>
