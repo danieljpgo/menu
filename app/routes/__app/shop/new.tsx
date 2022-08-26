@@ -73,7 +73,7 @@ export async function action({ request }: ActionArgs) {
       menus: {
         connect: form.menus.map((id) => ({ id })),
       },
-      purchaseIngredients: {
+      purchases: {
         create: Array.from(purchaseIngredients).map((id) => ({
           ingredient: { connect: { id } },
         })),

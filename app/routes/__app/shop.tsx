@@ -33,7 +33,7 @@ export async function loader({ request }: LoaderArgs) {
     where: { userId },
     select: {
       id: true,
-      purchaseIngredients: {
+      purchases: {
         select: { id: true, bought: true, ingredient: true },
       },
       menus: {
@@ -66,7 +66,7 @@ export async function loader({ request }: LoaderArgs) {
     .flat()
     .flat();
 
-  const purchases = shop.purchaseIngredients.map((purchase) => ({
+  const purchases = shop.purchases.map((purchase) => ({
     ...purchase,
     value: ingredients
       .filter((ingredient) => ingredient.id === purchase.ingredient.id)
@@ -105,7 +105,7 @@ export async function action({ request }: ActionArgs) {
     await prisma.shop.update({
       where: { id: validation.data.shopId },
       data: {
-        purchaseIngredients: {
+        purchases: {
           updateMany: boughts.map((bought) => ({
             where: { id: String(bought.id) },
             data: { bought: bought.check.includes("on") },

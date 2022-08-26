@@ -41,7 +41,7 @@ export async function loader({ request, params }: LoaderArgs) {
 }
 
 export async function action({ request, params }: ActionArgs) {
-  const userId = await requireUserId(request);
+  await requireUserId(request);
 
   const formData = await request.formData();
   const validation = formSchema.safeParse({
@@ -69,7 +69,7 @@ export async function action({ request, params }: ActionArgs) {
           },
         },
       },
-      purchaseIngredients: true,
+      purchases: true,
     },
   });
 
@@ -140,7 +140,7 @@ export async function action({ request, params }: ActionArgs) {
         disconnect: disconnectMenus.map((menu) => ({ id: menu.id })),
         connect: connectMenus.map((id) => ({ id })),
       },
-      purchaseIngredients: {
+      purchases: {
         deleteMany: deletePurchases.map((id) => ({
           ingredientId: id,
         })),
