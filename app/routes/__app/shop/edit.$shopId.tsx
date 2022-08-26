@@ -9,27 +9,44 @@ import { prisma } from "~/server/db.server";
 import { requireUserId } from "~/server/session.server";
 
 const schema = z.object({
+  shopId: z.string({ required_error: "shopId not found" }),
+});
+
+const formSchema = z.object({
   menus: z.array(z.string()),
+  shopId: z.string({ required_error: "shopId not found" }),
 });
 
 export const meta: MetaFunction = () => ({
-  title: `Menu - Create Shop`,
+  title: `Menu - Edit Shop`,
 });
 
-export async function loader({ request }: LoaderArgs) {
-  await requireUserId(request);
+export async function loader({ request, params }: LoaderArgs) {
+  const userId = await requireUserId(request);
+  const validation = schema.safeParse(params);
+
+  if (!validation.success) {
+    throw new Error(validation.error.issues[0].message);
+  }
+
+  const shop = await prisma.shop.findUniqueOrThrow({
+    where: { id: validation.data.shopId },
+    include: { menus: true },
+  });
   const menus = await prisma.menu.findMany({
+    where: { userId: userId },
     orderBy: { name: "desc" },
   });
-  return json({ menus });
+  return json({ shop, menus });
 }
 
-export async function action({ request }: ActionArgs) {
-  const userId = await requireUserId(request);
+export async function action({ request, params }: ActionArgs) {
+  await requireUserId(request);
 
   const formData = await request.formData();
-  const validation = schema.safeParse({
-    menus: formData.getAll("menu"),
+  const validation = formSchema.safeParse({
+    menus: formData.getAll("menu"), //rename to menusId
+    shopId: params.shopId,
   });
 
   // @TODO better error handler
@@ -38,6 +55,16 @@ export async function action({ request }: ActionArgs) {
   }
 
   const form = validation.data;
+
+  const shop = await prisma.shop.findUnique({
+    where: { id: validation.data.shopId },
+    include: { menus: true },
+  });
+
+  if (!shop) {
+    throw new Response("Not Found", { status: 404 });
+  }
+
   const menus = await prisma.menu.findMany({
     where: {
       id: { in: form.menus },
@@ -68,25 +95,39 @@ export async function action({ request }: ActionArgs) {
       )
     )
   );
-  await prisma.shop.create({
+
+  const disconnectMenus = shop.menus.filter(
+    (menu) => !form.menus.some((id) => id === menu.id)
+  );
+  const connectMenus = form.menus.filter(
+    (id) => !shop.menus.some((menu) => menu.id === id)
+  );
+
+  await prisma.shop.update({
+    where: { id: form.shopId },
     data: {
       menus: {
-        connect: form.menus.map((id) => ({ id })),
+        disconnect: disconnectMenus.map((menu) => ({ id: menu.id })),
+        connect: connectMenus.map((id) => ({ id })),
       },
-      purchaseIngredients: {
-        create: Array.from(purchaseIngredients).map((id) => ({
-          ingredient: { connect: { id } },
-        })),
-      },
-      user: { connect: { id: userId } },
+      // {
+
+      // : form.menus.map((id) => ({ id })),
+      // connect: form.menus.map((id) => ({ id })),
+      // },
+      // purchaseIngredients: {
+      //   // create: Array.from(purchaseIngredients).map((id) => ({
+      //   //   ingredient: { connect: { id } },
+      //   // })),
+      // },
     },
   });
   return redirect(`/shop`);
 }
 
 export default function NewShop() {
-  const [menus, setMenus] = React.useState(1);
   const data = useLoaderData<typeof loader>();
+  const [menus, setMenus] = React.useState(data?.shop?.menus ?? []);
   // const actionData = useActionData<typeof action>();
 
   // const selectRef = React.useRef<HTMLSelectElement>(null);
@@ -101,6 +142,10 @@ export default function NewShop() {
   //   }
   // }, [actionData]);
 
+  if (!data.shop) {
+    return null;
+  }
+
   return (
     <Form method="post">
       <div className="pb-32">
@@ -110,15 +155,39 @@ export default function NewShop() {
             Menus
           </Heading>
           <Stack as="ol" gap="md">
-            {[...Array(menus).keys()].map((number) => (
-              <li className="w-full" key={number}>
-                <SelectField id={`menu-${number}`} name="menu" label="menu">
-                  {data.menus.map((menu) => (
-                    <option key={menu.id} value={menu.id}>
-                      {menu.name}
-                    </option>
-                  ))}
-                </SelectField>
+            {menus.map((shopMenu, index) => (
+              <li
+                key={`${shopMenu.id}-${index}`}
+                className="flex items-center w-full gap-4"
+              >
+                <div className="w-full">
+                  <SelectField
+                    id={`menu-${shopMenu.id}`}
+                    name="menu"
+                    label="menu"
+                    defaultValue={
+                      data.shop.menus.find(({ id }) => id === shopMenu.id)?.id
+                    }
+                  >
+                    {data.menus.map((menu) => (
+                      <option key={menu.id} value={menu.id}>
+                        {menu.name}
+                      </option>
+                    ))}
+                  </SelectField>
+                </div>
+
+                <div className="pt-6">
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() =>
+                      setMenus((prev) => prev.filter((_, i) => index !== i))
+                    }
+                  >
+                    -
+                  </Button>
+                </div>
               </li>
             ))}
           </Stack>
@@ -129,11 +198,11 @@ export default function NewShop() {
         <Button
           type="button"
           size="sm"
-          onClick={() => setMenus((prev) => prev + 1)}
+          onClick={() => setMenus((prev) => [...prev, data.menus[0]])}
         >
           +
         </Button>
-        <Button type="submit" size="sm">
+        <Button type="submit" size="sm" disabled={menus.length === 0}>
           save
         </Button>
       </div>

@@ -63,8 +63,8 @@ export async function loader({ request }: LoaderArgs) {
         }))
       )
     )
-    .flatMap((recipe) => recipe)
-    .flatMap((recipe) => recipe);
+    .flat()
+    .flat();
 
   const purchases = shop.purchaseIngredients.map((purchase) => ({
     ...purchase,
@@ -129,7 +129,11 @@ export default function Shop() {
         Shop
       </Heading>
       {!matches.some((match) =>
-        ["routes/__app/shop/new", "routes/__app/shop/edit"].includes(match.id)
+        [
+          "routes/__app/shop/new",
+          "routes/__app/shop/edit",
+          "routes/__app/shop/edit.$shopId",
+        ].includes(match.id)
       ) && (
         <>
           {!data.shop ? (
@@ -203,7 +207,11 @@ export default function Shop() {
                   <Button size="sm" type="submit" name="action" value="delete">
                     Delete
                   </Button>
-                  <Link to="edit">
+                  <Link
+                    to={{
+                      pathname: `edit/${data.shop.id}`,
+                    }}
+                  >
                     <Button size="sm" type="button">
                       edit
                     </Button>
