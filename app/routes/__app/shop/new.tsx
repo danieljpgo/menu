@@ -85,8 +85,8 @@ export async function action({ request }: ActionArgs) {
 }
 
 export default function NewShop() {
-  const [menus, setMenus] = React.useState(1);
   const data = useLoaderData<typeof loader>();
+  const [menusId, setMenusId] = React.useState([""]);
   // const actionData = useActionData<typeof action>();
 
   // const selectRef = React.useRef<HTMLSelectElement>(null);
@@ -110,15 +110,28 @@ export default function NewShop() {
             Menus
           </Heading>
           <Stack as="ol" gap="md">
-            {[...Array(menus).keys()].map((number) => (
-              <li className="w-full" key={number}>
-                <SelectField id={`menu-${number}`} name="menu" label="menu">
-                  {data.menus.map((menu) => (
-                    <option key={menu.id} value={menu.id}>
-                      {menu.name}
-                    </option>
-                  ))}
-                </SelectField>
+            {menusId.map((id, index) => (
+              <li className="flex items-center w-full gap-4" key={id}>
+                <div className="w-full">
+                  <SelectField id={`menu-${id}`} name="menu" label="menu">
+                    {data.menus.map((menu) => (
+                      <option key={menu.id} value={menu.id}>
+                        {menu.name}
+                      </option>
+                    ))}
+                  </SelectField>
+                </div>
+                <div className="pt-6">
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() =>
+                      setMenusId((prev) => prev.filter((_, i) => index !== i))
+                    }
+                  >
+                    -
+                  </Button>
+                </div>
               </li>
             ))}
           </Stack>
@@ -129,11 +142,16 @@ export default function NewShop() {
         <Button
           type="button"
           size="sm"
-          onClick={() => setMenus((prev) => prev + 1)}
+          onClick={() =>
+            setMenusId((prev) => [
+              ...prev,
+              `${prev[prev.length]}-${prev.length}`,
+            ])
+          }
         >
           +
         </Button>
-        <Button type="submit" size="sm">
+        <Button type="submit" size="sm" disabled={menusId.length === 0} fill>
           save
         </Button>
       </div>
