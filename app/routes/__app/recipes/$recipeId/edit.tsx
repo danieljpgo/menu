@@ -22,6 +22,10 @@ export const meta: MetaFunction = () => ({
 });
 
 const schema = z.object({
+  recipeId: z.string({ required_error: "recipeId not found" }),
+});
+
+const formSchema = z.object({
   name: z.string(),
   description: z.string(),
   amounts: z.array(
@@ -36,17 +40,34 @@ const schema = z.object({
   ingredients: z.array(z.string()),
 });
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request, params }: LoaderArgs) {
   await requireUserId(request);
-  const ingredients = await prisma.ingredient.findMany({
-    orderBy: { name: "desc" },
+  const validation = schema.safeParse(params);
+
+  if (!validation.success) {
+    throw new Error(validation.error.issues[0].message);
+  }
+  const recipe = await prisma.recipe.findFirstOrThrow({
+    where: { id: validation.data.recipeId },
+    include: { ingredients: true },
   });
-  return json({ ingredients });
+  const ingredients = await prisma.ingredient.findMany({
+    orderBy: { name: "asc" },
+  });
+  return json({ ingredients, recipe });
 }
 
 export async function action({ request }: ActionArgs) {
   const userId = await requireUserId(request);
   const formData = await request.formData();
+
+  console.log({
+    name: formData.get("name"),
+    description: formData.get("description"),
+    ingredients: formData.getAll("ingredient"),
+    amounts: formData.getAll("amount"),
+  });
+
   const validation = schema.safeParse({
     name: formData.get("name"),
     description: formData.get("description"),
@@ -54,33 +75,42 @@ export async function action({ request }: ActionArgs) {
     amounts: formData.getAll("amount"),
   });
 
+  console.log(validation);
+
   // @TODO better error handler
   if (!validation.success) {
     return json({ errors: { name: null, body: null } }, { status: 400 });
   }
 
-  const form = validation.data;
-  const recipe = await prisma.recipe.create({
-    data: {
-      name: form.name,
-      description: form.description,
-      ingredients: {
-        create: form.ingredients.map((ingredient, index) => ({
-          amount: form.amounts[index],
-          ingredient: { connect: { id: ingredient } },
-        })),
-      },
-      user: { connect: { id: userId } },
-    },
-  });
-  return redirect(`/recipes/${recipe.id}`);
+  // const form = validation.data;
+  // const recipe = await prisma.recipe.create({
+  //   data: {
+  //     name: form.name,
+  //     description: form.description,
+  //     ingredients: {
+  //       create: form.ingredients.map((ingredient, index) => ({
+  //         amount: form.amounts[index],
+  //         ingredient: { connect: { id: ingredient } },
+  //       })),
+  //     },
+  //     user: { connect: { id: userId } },
+  //   },
+  // });
+  // return redirect(`/recipes/${recipe.id}`);
+  return redirect(`/recipes`);
 }
 
 export default function NewRecipe() {
-  // const [ingredients, setIngredients] = React.useState<Array<string>>([]);
-  const [ingredientsId, setIngredientsId] = React.useState<Array<string>>([""]);
   const data = useLoaderData<typeof loader>();
+  const [ingredients, setIngredients] = React.useState(data.ingredients);
+  const [selectedIngredients, setSelectedIngredients] = React.useState(() =>
+    data.recipe.ingredients.map((ingredient) => ({
+      id: ingredient.ingredientId,
+      amount: ingredient.amount,
+    }))
+  );
 
+  console.log({ data });
   // console.log(ingredients);
   // const actionData = useActionData<typeof action>();
 
@@ -103,23 +133,36 @@ export default function NewRecipe() {
           <Heading as="h3" weight="medium">
             Details
           </Heading>
-          <TextField id="name" name="name" label="name" />
-          <TextField id="description" name="description" label="description" />
+          <TextField
+            id="name"
+            name="name"
+            label="name"
+            defaultValue={data.recipe.name}
+          />
+          <TextField
+            id="description"
+            name="description"
+            label="description"
+            defaultValue={data.recipe.description}
+          />
           <Heading as="h3" weight="medium">
             Ingredient
           </Heading>
           <Stack as="ol" gap="md">
-            {ingredientsId.map((id, index) => (
+            {selectedIngredients.map((ingredient, index) => (
               <Shelf as="li" gap="md" key={index}>
                 <div className="w-full">
                   <SelectField
                     id={`ingredient-${index}`}
                     name="ingredient"
                     label={`ingredient`}
+                    defaultValue={ingredient.id}
                     onChange={(e) =>
-                      setIngredientsId((prev) =>
-                        prev.map((data, i) =>
-                          i === index ? e.target.value : data
+                      setSelectedIngredients((prev) =>
+                        prev.map((a, i) =>
+                          i === index
+                            ? { amount: 0, id: e.currentTarget.value }
+                            : a
                         )
                       )
                     }
@@ -132,7 +175,7 @@ export default function NewRecipe() {
                   </SelectField>
                 </div>
                 <div className="w-1/4">
-                  {data.ingredients.find((a) => a.id === ingredientsId[index])
+                  {data.ingredients.find((a) => a.id === ingredient.id)
                     ?.unit === "p" ? (
                     <SelectField
                       id={`amount-${index}`}
@@ -153,6 +196,7 @@ export default function NewRecipe() {
                       id={`amount-${index}`}
                       name="amount"
                       label={`amount`}
+                      defaultValue={ingredient.amount}
                     />
                   )}
                 </div>
@@ -167,11 +211,20 @@ export default function NewRecipe() {
         <Button
           type="button"
           size="sm"
-          onClick={() => setIngredientsId((prev) => [...prev, ""])}
+          onClick={() =>
+            setSelectedIngredients((prev) => [
+              ...prev,
+              {
+                id: data.ingredients[0].id,
+                amount: 0,
+              },
+            ])
+          }
           fill
         >
           +
         </Button>
+        <input type="hidden" name="shopId" value={data.recipe.id} />
         <Button type="submit" size="sm" fill>
           save
         </Button>

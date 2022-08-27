@@ -155,7 +155,7 @@ export async function action({ request, params }: ActionArgs) {
 
 export default function NewShop() {
   const data = useLoaderData<typeof loader>();
-  const [menus, setMenus] = React.useState(data?.shop?.menus ?? []);
+  const [menus, setMenus] = React.useState(data.shop.menus);
   // const actionData = useActionData<typeof action>();
 
   // const selectRef = React.useRef<HTMLSelectElement>(null);

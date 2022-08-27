@@ -1,5 +1,6 @@
 // @TODO: arial label for ul
 const gaps = {
+  none: "gap-0",
   xs: "gap-1",
   sm: "gap-2",
   md: "gap-4",

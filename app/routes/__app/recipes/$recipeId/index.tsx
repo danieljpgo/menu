@@ -1,6 +1,6 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Form, useCatch, useLoaderData } from "@remix-run/react";
+import { Form, Link, useCatch, useLoaderData } from "@remix-run/react";
 import { portions } from "lib/ingredients";
 import { z } from "zod";
 import { Button, Heading, Shelf, Stack, Text } from "~/components";
@@ -63,18 +63,16 @@ export default function RecipeDetails() {
   const data = useLoaderData<typeof loader>();
 
   return (
-    <Stack gap="md">
-      <Stack>
-        <Heading as="h3" weight="medium">
-          {data.recipe.name}
+    <Stack gap="xs">
+      <Heading as="h3" weight="medium">
+        {data.recipe.name}
+      </Heading>
+      <Text>{data.recipe.description}</Text>
+      <Stack gap="none">
+        <Heading as="h4" weight="medium">
+          Ingredients
         </Heading>
-        <Text>{data.recipe.description}</Text>
-      </Stack>
-      <Stack>
-        <Heading as="h3" weight="medium">
-          Ingredient
-        </Heading>
-        <Stack as="ul" gap="xs">
+        <ul>
           {data.recipe.ingredients.map((ingredient) => (
             <Shelf key={ingredient.id}>
               <Text>-</Text>
@@ -88,19 +86,21 @@ export default function RecipeDetails() {
               </Text>
             </Shelf>
           ))}
-        </Stack>
+        </ul>
       </Stack>
       <div className="fixed bottom-0 left-0 right-0 grid gap-4 px-6 pb-4 bg-white ">
         <hr />
         <Shelf gap="md">
           <Form method="post" className="w-full">
             <Button size="sm" type="submit" fill>
-              Delete
+              delete
             </Button>
           </Form>
-          <Button size="sm" type="button" disabled fill>
-            edit
-          </Button>
+          <Link to={`edit`} className="grid w-full">
+            <Button size="sm" type="button" fill>
+              edit
+            </Button>
+          </Link>
         </Shelf>
       </div>
     </Stack>

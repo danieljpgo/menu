@@ -217,12 +217,7 @@ export default function Shop() {
                   >
                     delete
                   </Button>
-                  <Link
-                    to={{
-                      pathname: `edit/${data.shop.id}`,
-                    }}
-                    className="grid w-full"
-                  >
+                  <Link to={`edit/${data.shop.id}`} className="grid w-full">
                     <Button size="sm" type="button" fill>
                       edit
                     </Button>
