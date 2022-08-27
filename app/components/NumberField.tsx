@@ -4,8 +4,8 @@ type NumberFieldProps = {
   id: string;
   label: string;
   name: string;
-  value?: string;
-  defaultValue?: string;
+  value?: number;
+  defaultValue?: number;
   disabled?: boolean;
   pattern?: string;
   children?: React.ReactNode;
