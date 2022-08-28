@@ -48,10 +48,14 @@ export async function loader({ request, params }: LoaderArgs) {
   if (!validation.success) {
     throw new Error(validation.error.issues[0].message);
   }
-  const recipe = await prisma.recipe.findFirstOrThrow({
+  const recipe = await prisma.recipe.findUnique({
     where: { id: validation.data.recipeId },
     include: { ingredients: true },
   });
+
+  if (!recipe) {
+    throw new Response("Not Found", { status: 404 });
+  }
   const ingredients = await prisma.ingredient.findMany({
     orderBy: { name: "asc" },
   });
@@ -93,39 +97,16 @@ export async function action({ request }: ActionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  // const disconnectMenus = shop.menus.filter(
-  //   (menu) => !form.menusId.some((id) => id === menu.id)
-  // );
-  // const unchangedMenus = shop.menus.filter((menu) =>
-  //   form.menusId.some((id) => id === menu.id)
-  // );
-  // const connectMenus = form.menusId.filter(
-  //   (id) => !shop.menus.some((menu) => menu.id === id)
-  // );
-
   const deleteIngredient = recipe.ingredients.filter(
     (ingredient) =>
       !form.ingredients.some((id) => id === ingredient.ingredientId)
   );
   const updatedIngredient = recipe.ingredients.filter((ingredient) =>
-    form.ingredients.some((id, index) => {
-      if (
+    form.ingredients.some(
+      (id, index) =>
         id === ingredient.ingredientId &&
         form.amounts[index] !== ingredient.amount
-      ) {
-        console.log({ index });
-        console.log({ ingredient });
-        console.log({ formIngredient: form.ingredients });
-        console.log({ formAmounts: form.amounts });
-        console.log({ amounts: form.amounts[index] });
-        console.log({ ingredientAmounts: ingredient.amount });
-      }
-
-      return (
-        id === ingredient.ingredientId &&
-        form.amounts[index] !== ingredient.amount
-      );
-    })
+    )
   );
   const addIngredient = form.ingredients.filter(
     (id) =>
@@ -173,7 +154,6 @@ export default function NewRecipe() {
     }))
   );
 
-  console.log({ selectedIngredients });
   // const actionData = useActionData<typeof action>();
 
   // const titleRef = React.useRef<HTMLInputElement>(null);
@@ -266,10 +246,8 @@ export default function NewRecipe() {
                     type="button"
                     size="sm"
                     onClick={() =>
-                      setSelectedIngredients(
-                        (prev) =>
-                          console.log(index) ||
-                          prev.filter((_, i) => index !== i)
+                      setSelectedIngredients((prev) =>
+                        prev.filter((_, i) => index !== i)
                       )
                     }
                   >

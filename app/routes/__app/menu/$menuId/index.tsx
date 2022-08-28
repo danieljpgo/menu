@@ -1,11 +1,11 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Form, useCatch, useLoaderData } from "@remix-run/react";
+import { Form, Link, useCatch, useLoaderData } from "@remix-run/react";
+import { portions } from "lib/ingredients";
 import { z } from "zod";
+import { Button, Heading, Shelf, Stack, Text } from "~/components";
 import { prisma } from "~/server/db.server";
 import { requireUserId } from "~/server/session.server";
-import { Button, Heading, Shelf, Stack, Text } from "~/components";
-import { portions } from "lib/ingredients";
 
 export const meta: MetaFunction = ({ data }) => ({
   title: `Menu - ${data.menu.name}`,
@@ -119,9 +119,11 @@ export default function MenuDetails() {
                 delete
               </Button>
             </Form>
-            <Button size="sm" type="button" disabled fill>
-              edit
-            </Button>
+            <Link to="edit" className="w-full">
+              <Button size="sm" type="button" fill>
+                edit
+              </Button>
+            </Link>
           </Shelf>
         </div>
       </Stack>

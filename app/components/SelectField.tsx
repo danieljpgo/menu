@@ -1,11 +1,11 @@
-import { Select, Label } from "~/components";
+import { Label, Select } from "~/components";
 
 type SelectFieldProps = {
   id: string;
   label: string;
   name: string;
-  value?: string;
-  defaultValue?: string;
+  value?: React.SelectHTMLAttributes<HTMLSelectElement>["value"];
+  defaultValue?: React.SelectHTMLAttributes<HTMLSelectElement>["value"];
   disabled?: boolean;
   children?: React.ReactNode;
   required?: boolean;
@@ -44,3 +44,4 @@ export default function SelectField(props: SelectFieldProps) {
     </div>
   );
 }
+// @TODO better type
