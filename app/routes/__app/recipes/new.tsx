@@ -156,6 +156,19 @@ export default function NewRecipe() {
                     />
                   )}
                 </div>
+                <div className="self-center pt-6">
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() =>
+                      setIngredientsId((prev) =>
+                        prev.filter((_, i) => index !== i)
+                      )
+                    }
+                  >
+                    -
+                  </Button>
+                </div>
               </Shelf>
             ))}
           </Stack>
@@ -172,7 +185,12 @@ export default function NewRecipe() {
         >
           +
         </Button>
-        <Button type="submit" size="sm" fill>
+        <Button
+          type="submit"
+          size="sm"
+          disabled={ingredientsId.length === 0}
+          fill
+        >
           save
         </Button>
       </div>

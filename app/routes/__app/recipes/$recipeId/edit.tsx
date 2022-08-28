@@ -200,6 +200,19 @@ export default function NewRecipe() {
                     />
                   )}
                 </div>
+                <div className="self-center pt-6">
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() =>
+                      setSelectedIngredients((prev) =>
+                        prev.filter((_, i) => index !== i)
+                      )
+                    }
+                  >
+                    -
+                  </Button>
+                </div>
               </Shelf>
             ))}
           </Stack>

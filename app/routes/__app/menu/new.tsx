@@ -1,18 +1,18 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from "@remix-run/node";
-import * as React from "react";
 import { json, redirect } from "@remix-run/node";
-import { z } from "zod";
 import { Form, useLoaderData } from "@remix-run/react";
-import { prisma } from "~/server/db.server";
-import { requireUserId } from "~/server/session.server";
+import * as React from "react";
+import { z } from "zod";
 import {
   Button,
-  TextField,
+  Heading,
   SelectField,
   Stack,
-  Heading,
   Text,
+  TextField,
 } from "~/components";
+import { prisma } from "~/server/db.server";
+import { requireUserId } from "~/server/session.server";
 
 export const meta: MetaFunction = () => ({
   title: `Menu - New`,
@@ -63,8 +63,8 @@ export async function action({ request }: ActionArgs) {
 }
 
 export default function NewMenu() {
-  const [recipesAmount, setRecipesAmount] = React.useState(1);
   const data = useLoaderData<typeof loader>();
+  const [recipesId, setRecipesId] = React.useState([""]);
   // const actionData = useActionData<typeof action>();
 
   // const selectRef = React.useRef<HTMLSelectElement>(null);
@@ -93,19 +93,28 @@ export default function NewMenu() {
             Recipes
           </Heading>
           <Stack as="ol" gap="md">
-            {[...Array(recipesAmount).keys()].map((number) => (
-              <li className="w-full" key={number}>
-                <SelectField
-                  id={`recipe-${number}`}
-                  name="recipe"
-                  label="recipe"
-                >
-                  {data.recipes.map((recipe) => (
-                    <option key={recipe.id} value={recipe.id}>
-                      {recipe.name}
-                    </option>
-                  ))}
-                </SelectField>
+            {recipesId.map((id, index) => (
+              <li className="flex items-center w-full gap-4" key={id}>
+                <div className="w-full">
+                  <SelectField id={`recipe-${id}`} name="recipe" label="recipe">
+                    {data.recipes.map((recipe) => (
+                      <option key={recipe.id} value={recipe.id}>
+                        {recipe.name}
+                      </option>
+                    ))}
+                  </SelectField>
+                </div>
+                <div className="pt-6">
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() =>
+                      setRecipesId((prev) => prev.filter((_, i) => index !== i))
+                    }
+                  >
+                    -
+                  </Button>
+                </div>
               </li>
             ))}
           </Stack>
@@ -116,11 +125,16 @@ export default function NewMenu() {
         <Button
           type="button"
           size="sm"
-          onClick={() => setRecipesAmount((prev) => prev + 1)}
+          onClick={() =>
+            setRecipesId((prev) => [
+              ...prev,
+              `${prev[prev.length]}-${prev.length}`,
+            ])
+          }
         >
           +
         </Button>
-        <Button type="submit" size="sm">
+        <Button type="submit" size="sm" disabled={recipesId.length === 0} fill>
           save
         </Button>
       </div>
