@@ -1,6 +1,6 @@
 import { Input, Label } from "~/components";
 
-type TextFieldProps = {
+type EmailFieldProps = {
   id: string;
   label: string;
   name: string;
@@ -10,17 +10,17 @@ type TextFieldProps = {
   required?: boolean;
 };
 
-export default function TextField(props: TextFieldProps) {
-  const { id, label, name, disabled, required, value, defaultValue } = props;
+export default function EmailField(props: EmailFieldProps) {
+  const { id, label, name, required, disabled, value, defaultValue } = props;
 
   return (
     <div>
-      <Label status={disabled ? "disabled" : "none"} htmlFor={id}>
+      <Label htmlFor={id} status={disabled ? "disabled" : "none"}>
         {label}
       </Label>
       <Input
         id={id}
-        type="text"
+        type="email"
         name={name}
         value={value}
         defaultValue={defaultValue}

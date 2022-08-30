@@ -12,5 +12,5 @@ export { default as Select } from "./Select";
 export { default as TextField } from "./TextField";
 export { default as SelectField } from "./SelectField";
 export { default as NumberField } from "./NumberField";
-
+export { default as PasswordField } from "./PasswordField";
 // export { default as Center } from "./Center";
