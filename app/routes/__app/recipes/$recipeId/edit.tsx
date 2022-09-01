@@ -2,6 +2,7 @@ import type { ActionArgs, LoaderArgs, MetaFunction } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { Form, useLoaderData } from "@remix-run/react";
 import { portions } from "lib/ingredients";
+import { notFound } from "lib/remix";
 import * as React from "react";
 import { z } from "zod";
 import {
@@ -14,7 +15,8 @@ import {
   Text,
   TextField,
 } from "~/components";
-import { prisma } from "~/server/db.server";
+import { getIngredients } from "~/server/ingredient.server";
+import { getRecipe, updateRecipe } from "~/server/recipe.server";
 import { requireUserId } from "~/server/session.server";
 
 export const meta: MetaFunction = () => ({
@@ -44,36 +46,18 @@ const formSchema = z.object({
 export async function loader({ request, params }: LoaderArgs) {
   await requireUserId(request);
   const validation = schema.safeParse(params);
-
   if (!validation.success) {
-    throw new Error(validation.error.issues[0].message);
+    throw new Error(validation.error.issues[0].message); // @TODO handle errors
   }
-  const recipe = await prisma.recipe.findUnique({
-    where: { id: validation.data.recipeId },
-    include: { ingredients: true },
-  });
-
-  if (!recipe) {
-    throw new Response("Not Found", { status: 404 });
-  }
-  const ingredients = await prisma.ingredient.findMany({
-    orderBy: { name: "asc" },
-  });
+  const recipe = await getRecipe(validation.data.recipeId);
+  if (!recipe) throw notFound();
+  const ingredients = await getIngredients();
   return json({ ingredients, recipe });
 }
 
 export async function action({ request }: ActionArgs) {
   const userId = await requireUserId(request);
   const formData = await request.formData();
-
-  console.log({
-    name: formData.get("name"),
-    description: formData.get("description"),
-    ingredients: formData.getAll("ingredient"),
-    amounts: formData.getAll("amount"),
-    recipeId: formData.getAll("recipeId"),
-  });
-
   const validation = formSchema.safeParse({
     recipeId: formData.get("recipeId"),
     name: formData.get("name"),
@@ -81,67 +65,11 @@ export async function action({ request }: ActionArgs) {
     ingredients: formData.getAll("ingredient"),
     amounts: formData.getAll("amount"),
   });
-
   if (!validation.success) {
-    // @TODO repetetive ingredients
-    return json({ errors: { name: null, body: null } }, { status: 400 }); // @TODO better error handler
+    return json({ errors: { name: null, body: null } }, { status: 400 }); // @TODO better error handler // @TODO repetetive ingredients
   }
-
-  const form = validation.data;
-  const recipe = await prisma.recipe.findUnique({
-    where: { id: form.recipeId },
-    include: { ingredients: { include: { ingredient: true } } },
-  });
-
-  if (!recipe) {
-    throw new Response("Not Found", { status: 404 });
-  }
-
-  const deleteIngredient = recipe.ingredients.filter(
-    (ingredient) =>
-      !form.ingredients.some((id) => id === ingredient.ingredientId)
-  );
-  const updatedIngredient = recipe.ingredients.filter((ingredient) =>
-    form.ingredients.some(
-      (id, index) =>
-        id === ingredient.ingredientId &&
-        form.amounts[index] !== ingredient.amount
-    )
-  );
-  const addIngredient = form.ingredients.filter(
-    (id) =>
-      !recipe.ingredients.some((ingredient) => ingredient.ingredientId === id)
-  );
-
-  await prisma.recipe.update({
-    where: { id: form.recipeId },
-    data: {
-      name: form.name,
-      description: form.description,
-      ingredients: {
-        create: addIngredient.map((ingredient) => ({
-          amount:
-            form.amounts[form.ingredients.findIndex((id) => id === ingredient)],
-          ingredient: { connect: { id: ingredient } },
-        })),
-        updateMany: updatedIngredient.map((ingredient) => ({
-          where: { id: ingredient.id },
-          data: {
-            amount:
-              form.amounts[
-                form.ingredients.findIndex(
-                  (id) => id === ingredient.ingredientId
-                )
-              ],
-          },
-        })),
-        deleteMany: deleteIngredient.map((ingredient) => ({
-          id: ingredient.id,
-        })),
-      },
-      user: { connect: { id: userId } },
-    },
-  });
+  const recipe = await updateRecipe({ userId }, validation.data);
+  if (!recipe) throw notFound();
   return redirect(`/recipes/${recipe.id}`);
 }
 

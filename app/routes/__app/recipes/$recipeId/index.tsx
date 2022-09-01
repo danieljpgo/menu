@@ -2,9 +2,10 @@ import type { ActionArgs, LoaderArgs, MetaFunction } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { Form, Link, useCatch, useLoaderData } from "@remix-run/react";
 import { portions } from "lib/ingredients";
+import { notFound } from "lib/remix";
 import { z } from "zod";
 import { Button, Heading, Shelf, Stack, Text } from "~/components";
-import { prisma } from "~/server/db.server";
+import { deteleRecipe, getRecipe } from "~/server/recipe.server";
 import { requireUserId } from "~/server/session.server";
 
 const schema = z.object({
@@ -16,46 +17,23 @@ export const meta: MetaFunction = ({ data }) => ({
 });
 
 export async function loader({ request, params }: LoaderArgs) {
-  const userId = await requireUserId(request);
+  await requireUserId(request);
   const validation = schema.safeParse(params);
-
   if (!validation.success) {
-    const { message } = validation.error.issues[0];
-    throw new Error(message);
+    throw new Error(validation.error.issues[0].message);
   }
-
-  const recipe = await prisma.recipe.findFirst({
-    select: {
-      id: true,
-      description: true,
-      name: true,
-      ingredients: {
-        include: {
-          recipe: true,
-          ingredient: true,
-        },
-      },
-    },
-    where: { id: validation.data.recipeId, userId },
-  });
-  if (!recipe) {
-    throw new Response("Not Found", { status: 404 });
-  }
+  const recipe = await getRecipe(validation.data.recipeId);
+  if (!recipe) throw notFound();
   return json({ recipe });
 }
 
 export async function action({ request, params }: ActionArgs) {
-  const userId = await requireUserId(request);
+  await requireUserId(request);
   const validation = schema.safeParse(params);
-
   if (!validation.success) {
-    const { message } = validation.error.issues[0];
-    throw new Error(message);
+    throw new Error(validation.error.issues[0].message);
   }
-
-  await prisma.recipe.deleteMany({
-    where: { id: validation.data.recipeId, userId },
-  });
+  await deteleRecipe(validation.data.recipeId);
   return redirect("/recipes");
 }
 
@@ -96,7 +74,7 @@ export default function RecipeDetails() {
               delete
             </Button>
           </Form>
-          <Link to={`edit`} className="grid w-full">
+          <Link to="edit" className="grid w-full">
             <Button size="sm" type="button" fill>
               edit
             </Button>

@@ -14,7 +14,8 @@ import {
   Text,
   TextField,
 } from "~/components";
-import { prisma } from "~/server/db.server";
+import { getIngredients } from "~/server/ingredient.server";
+import { createRecipe } from "~/server/recipe.server";
 import { requireUserId } from "~/server/session.server";
 
 export const meta: MetaFunction = () => ({
@@ -38,9 +39,7 @@ const schema = z.object({
 
 export async function loader({ request }: LoaderArgs) {
   await requireUserId(request);
-  const ingredients = await prisma.ingredient.findMany({
-    orderBy: { name: "desc" },
-  });
+  const ingredients = await getIngredients();
   return json({ ingredients });
 }
 
@@ -53,26 +52,10 @@ export async function action({ request }: ActionArgs) {
     ingredients: formData.getAll("ingredient"),
     amounts: formData.getAll("amount"),
   });
-
-  // @TODO better error handler
   if (!validation.success) {
-    return json({ errors: { name: null, body: null } }, { status: 400 });
+    return json({ errors: { name: null, body: null } }, { status: 400 }); // @TODO better error handler
   }
-
-  const form = validation.data;
-  const recipe = await prisma.recipe.create({
-    data: {
-      name: form.name,
-      description: form.description,
-      ingredients: {
-        create: form.ingredients.map((ingredient, index) => ({
-          amount: form.amounts[index],
-          ingredient: { connect: { id: ingredient } },
-        })),
-      },
-      user: { connect: { id: userId } },
-    },
-  });
+  const recipe = await createRecipe({ userId }, validation.data);
   return redirect(`/recipes/${recipe.id}`);
 }
 
