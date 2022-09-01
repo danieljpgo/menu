@@ -12,107 +12,63 @@ import type {
 } from "@remix-run/server-runtime";
 import { json, redirect } from "@remix-run/server-runtime";
 import { z } from "zod";
-import { Button, Heading, Input, Shelf, Stack, Text } from "~/components";
-import { prisma } from "~/server/db.server";
 import { requireUserId } from "~/server/session.server";
-
-export const meta: MetaFunction = () => ({
-  title: "Menu - Shop",
-});
+import {
+  deleteShop,
+  updateShopPurchases,
+  getShopPurchasesWithTotalValues,
+} from "~/server/shop.server";
+import { Button, Heading, Input, Shelf, Stack, Text } from "~/components";
 
 const schema = z.object({
   shopId: z.string({ required_error: "shopId not found" }),
   action: z.enum(["save", "delete"], {
     required_error: "action not found",
   }),
+  ingredientIds: z.array(
+    z.string({ required_error: "ingredientId not found" })
+  ),
+});
+
+export const meta: MetaFunction = () => ({
+  title: "Menu - Shop",
 });
 
 export async function loader({ request }: LoaderArgs) {
   const userId = await requireUserId(request);
-  const shop = await prisma.shop.findUnique({
-    where: { userId },
-    select: {
-      id: true,
-      purchases: {
-        select: { id: true, bought: true, ingredient: true },
-      },
-      menus: {
-        select: {
-          recipes: {
-            select: {
-              ingredients: {
-                select: { id: true, amount: true, ingredient: true },
-              },
-            },
-          },
-        },
-      },
-    },
-  });
+  const shop = await getShopPurchasesWithTotalValues({ userId });
+  if (!shop) return json({ shop });
 
-  if (!shop) {
-    return json({ shop });
-  }
-
-  const ingredients = shop.menus
-    .map((menu) =>
-      menu.recipes.map((recipe) =>
-        recipe.ingredients.map((ingredient) => ({
-          id: ingredient.ingredient.id,
-          amount: ingredient.amount,
-        }))
-      )
-    )
-    .flat()
-    .flat();
-
-  const purchases = shop.purchases.map((purchase) => ({
-    ...purchase,
-    value: ingredients
-      .filter((ingredient) => ingredient.id === purchase.ingredient.id)
-      .reduce((acc, curr) => acc + curr.amount, 0),
-  }));
-
-  return json({ shop: { id: shop.id, purchases } });
+  return json({ shop: { id: shop.id, purchases: shop.purchases } });
 }
 
 export async function action({ request }: ActionArgs) {
-  const userId = await requireUserId(request);
+  await requireUserId(request);
   const formData = await request.formData();
   const validation = schema.safeParse({
     shopId: formData.get("shopId"),
     action: formData.get("action"),
+    ingredientIds: formData.getAll("ingredientId"),
   });
 
-  // @TODO better error handler
   if (!validation.success) {
+    // @TODO better error handler
     throw new Error(validation.error.issues[0].message);
   }
+
   const form = validation.data;
 
   if (form.action === "delete") {
-    await prisma.shop.deleteMany({
-      where: { id: validation.data.shopId, userId },
-    });
+    await deleteShop(form.shopId);
     return json({ ok: true, action: form.action });
   }
 
   if (form.action === "save") {
-    const boughts = formData
-      .getAll("ingredientId")
-      .map((id) => ({ id, check: formData.getAll(`bought-${id}`) }));
+    const boughts = form.ingredientIds
+      .map((id) => ({ id, check: formData.getAll(`bought-${id}`) }))
+      .map((bought) => ({ ...bought, check: bought.check.includes("on") }));
 
-    await prisma.shop.update({
-      where: { id: validation.data.shopId },
-      data: {
-        purchases: {
-          updateMany: boughts.map((bought) => ({
-            where: { id: String(bought.id) },
-            data: { bought: bought.check.includes("on") },
-          })),
-        },
-      },
-    });
+    await updateShopPurchases(validation.data.shopId, { boughts });
     return json({ ok: true, action: form.action });
   }
 
@@ -123,18 +79,20 @@ export default function Shop() {
   const data = useLoaderData<typeof loader>();
   const matches = useMatches();
 
+  const showShop = !matches.some((match) =>
+    [
+      "routes/__app/shop/new",
+      "routes/__app/shop/edit",
+      "routes/__app/shop/edit.$shopId",
+    ].includes(match.id)
+  );
+
   return (
     <div className="grid gap-4 px-6 py-4">
       <Heading as="h2" weight="semibold">
         Shop
       </Heading>
-      {!matches.some((match) =>
-        [
-          "routes/__app/shop/new",
-          "routes/__app/shop/edit",
-          "routes/__app/shop/edit.$shopId",
-        ].includes(match.id)
-      ) && (
+      {showShop && (
         <>
           {!data.shop ? (
             <Text as="p" size="sm" weight="normal" color="dark">

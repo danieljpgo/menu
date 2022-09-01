@@ -1,12 +1,13 @@
-import type { Ingredient } from "@prisma/client";
 import type { ActionArgs, LoaderArgs, MetaFunction } from "@remix-run/node";
+import * as React from "react";
 import { json, redirect } from "@remix-run/node";
 import { Form, useLoaderData } from "@remix-run/react";
-import * as React from "react";
 import { z } from "zod";
-import { Button, Heading, SelectField, Stack, Text } from "~/components";
-import { prisma } from "~/server/db.server";
 import { requireUserId } from "~/server/session.server";
+import { Button, Heading, SelectField, Stack, Text } from "~/components";
+import { updateShop, getShop } from "~/server/shop.server";
+import { notFound } from "lib/remix";
+import { getMenus } from "~/server/menu.server";
 
 const schema = z.object({
   shopId: z.string({ required_error: "shopId not found" }),
@@ -24,25 +25,22 @@ export const meta: MetaFunction = () => ({
 export async function loader({ request, params }: LoaderArgs) {
   const userId = await requireUserId(request);
   const validation = schema.safeParse(params);
-
   if (!validation.success) {
+    // @TODO better error handler
     throw new Error(validation.error.issues[0].message);
   }
 
-  const shop = await prisma.shop.findUniqueOrThrow({
-    where: { id: validation.data.shopId },
-    include: { menus: true },
-  });
-  const menus = await prisma.menu.findMany({
-    where: { userId: userId },
-    orderBy: { name: "desc" },
-  });
+  const shop = await getShop(validation.data.shopId);
+  if (!shop) {
+    throw notFound();
+  }
+
+  const menus = await getMenus({ userId });
   return json({ shop, menus });
 }
 
 export async function action({ request, params }: ActionArgs) {
   await requireUserId(request);
-
   const formData = await request.formData();
   const validation = formSchema.safeParse({
     menusId: formData.getAll("menu"),
@@ -50,106 +48,14 @@ export async function action({ request, params }: ActionArgs) {
   });
 
   if (!validation.success) {
-    return json({ errors: { name: null, body: null } }, { status: 400 }); // @TODO better error handler
-  }
-  const form = validation.data;
-  const shop = await prisma.shop.findUnique({
-    where: { id: validation.data.shopId },
-    include: {
-      menus: {
-        include: {
-          recipes: {
-            include: {
-              ingredients: {
-                select: {
-                  ingredient: true,
-                },
-              },
-            },
-          },
-        },
-      },
-      purchases: true,
-    },
-  });
-
-  if (!shop) {
-    throw new Response("Not Found", { status: 404 });
+    // @TODO better error handler
+    return json({ errors: { name: null, body: null } }, { status: 400 });
   }
 
-  const disconnectMenus = shop.menus.filter(
-    (menu) => !form.menusId.some((id) => id === menu.id)
-  );
-  const unchangedMenus = shop.menus.filter((menu) =>
-    form.menusId.some((id) => id === menu.id)
-  );
-  const connectMenus = form.menusId.filter(
-    (id) => !shop.menus.some((menu) => menu.id === id)
-  );
-  const newMenusId = [...unchangedMenus.map(({ id }) => id), ...connectMenus];
-
-  const newMenus = await prisma.menu.findMany({
-    where: { id: { in: newMenusId } },
-    select: {
-      recipes: {
-        select: {
-          ingredients: {
-            select: {
-              ingredient: {
-                select: {
-                  id: true,
-                  name: true,
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  });
-
-  const newPurchaseIngredients = new Set<Ingredient["id"]>();
-  newMenus.forEach((menu) =>
-    menu.recipes.forEach((recipe) =>
-      recipe.ingredients.forEach((ingredient) =>
-        newPurchaseIngredients.add(ingredient.ingredient.id)
-      )
-    )
-  );
-
-  const currentPurchaseIngredients = new Set<Ingredient["id"]>();
-  shop.menus.forEach((menu) =>
-    menu.recipes.forEach((recipe) =>
-      recipe.ingredients.forEach((ingredient) =>
-        currentPurchaseIngredients.add(ingredient.ingredient.id)
-      )
-    )
-  );
-
-  const deletePurchases = Array.from(currentPurchaseIngredients).filter(
-    (id) => !Array.from(newPurchaseIngredients).some((a) => id === a)
-  );
-  const createPurchases = Array.from(newPurchaseIngredients).filter(
-    (id) => !Array.from(currentPurchaseIngredients).some((a) => a === id)
-  );
-
-  await prisma.shop.update({
-    where: { id: form.shopId },
-    data: {
-      menus: {
-        disconnect: disconnectMenus.map((menu) => ({ id: menu.id })),
-        connect: connectMenus.map((id) => ({ id })),
-      },
-      purchases: {
-        deleteMany: deletePurchases.map((id) => ({
-          ingredientId: id,
-        })),
-        create: createPurchases.map((id) => ({
-          ingredient: { connect: { id } },
-        })),
-      },
-    },
-  });
+  const newShop = await updateShop(validation.data);
+  if (!newShop) {
+    throw notFound();
+  }
   return redirect(`/shop`);
 }
 
@@ -169,10 +75,6 @@ export default function NewShop() {
   //     bodyRef.current?.focus();
   //   }
   // }, [actionData]);
-
-  if (!data.shop) {
-    return null;
-  }
 
   return (
     <Form method="post">
@@ -204,7 +106,6 @@ export default function NewShop() {
                     ))}
                   </SelectField>
                 </div>
-
                 <div className="pt-6">
                   <Button
                     type="button"

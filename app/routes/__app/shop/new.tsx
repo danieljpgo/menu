@@ -1,12 +1,12 @@
-import type { Ingredient } from "@prisma/client";
 import type { ActionArgs, LoaderArgs, MetaFunction } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { Form, useLoaderData } from "@remix-run/react";
 import * as React from "react";
 import { z } from "zod";
-import { Button, Heading, SelectField, Stack, Text } from "~/components";
 import { prisma } from "~/server/db.server";
 import { requireUserId } from "~/server/session.server";
+import { createShop } from "~/server/shop.server";
+import { Button, Heading, SelectField, Stack, Text } from "~/components";
 
 const schema = z.object({
   menus: z.array(z.string()),
@@ -26,61 +26,17 @@ export async function loader({ request }: LoaderArgs) {
 
 export async function action({ request }: ActionArgs) {
   const userId = await requireUserId(request);
-
   const formData = await request.formData();
   const validation = schema.safeParse({
     menus: formData.getAll("menu"),
   });
 
-  // @TODO better error handler
   if (!validation.success) {
+    // @TODO better error handler
     return json({ errors: { name: null, body: null } }, { status: 400 });
   }
 
-  const form = validation.data;
-  const menus = await prisma.menu.findMany({
-    where: {
-      id: { in: form.menus },
-    },
-    select: {
-      recipes: {
-        select: {
-          ingredients: {
-            select: {
-              ingredient: {
-                select: {
-                  id: true,
-                  name: true,
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  });
-
-  const purchaseIngredients = new Set<Ingredient["id"]>();
-  menus.forEach((menu) =>
-    menu.recipes.forEach((recipe) =>
-      recipe.ingredients.forEach((ingredient) =>
-        purchaseIngredients.add(ingredient.ingredient.id)
-      )
-    )
-  );
-  await prisma.shop.create({
-    data: {
-      menus: {
-        connect: form.menus.map((id) => ({ id })),
-      },
-      purchases: {
-        create: Array.from(purchaseIngredients).map((id) => ({
-          ingredient: { connect: { id } },
-        })),
-      },
-      user: { connect: { id: userId } },
-    },
-  });
+  await createShop({ userId }, validation.data);
   return redirect(`/shop`);
 }
 
