@@ -84,20 +84,12 @@ export function redirectPermanently(
   });
 }
 
-// /**
-//  * Create a response receiving a JSON object with the status code 404.
-//  * @example
-//  * export let loader: LoaderFunction = async ({ request, params }) => {
-//  *   const user = await getUser(request);
-//  *   if (!db.exists(params.id)) throw notFound<BoundaryData>({ user });
-//  * }
-//  */
-//  export function notFound<Data = unknown>(
-//   data: Data,
-//   init?: Omit<ExtendedResponseInit, "status">
-// ) {
-//   return json<Data>(data, { ...init, status: 404 });
-// }
+/**
+ * Create a new Response with a Not Found error using `404` as status code.
+ */
+export function notFound(init?: Omit<ResponseInit, "status">) {
+  return new Response("Not Found", { ...init, status: 404 });
+}
 
 // /**
 //  * Create a response receiving a JSON object with the status code 403.
@@ -112,4 +104,19 @@ export function redirectPermanently(
 //   init?: Omit<ExtendedResponseInit, "status">
 // ) {
 //   return json<Data>(data, { ...init, status: 403 });
+// }
+
+// /**
+//  * Create a response receiving a JSON object with the status code 404.
+//  * @example
+//  * export let loader: LoaderFunction = async ({ request, params }) => {
+//  *   const user = await getUser(request);
+//  *   if (!db.exists(params.id)) throw notFound<BoundaryData>({ user });
+//  * }
+//  */
+// export function notFound<Data = unknown>(
+//   data: Data,
+//   init?: Omit<ResponseInit, "status">
+// ) {
+//   return json<Data>(data, { ...init, status: 404 });
 // }
