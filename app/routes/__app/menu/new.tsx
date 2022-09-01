@@ -49,11 +49,10 @@ export async function action({ request }: ActionArgs) {
 export default function NewMenu() {
   const data = useLoaderData<typeof loader>();
   const [recipesId, setRecipesId] = React.useState([""]);
+  const nameRef = React.useRef<HTMLInputElement>(null);
+  const descriptionRef = React.useRef<HTMLInputElement>(null);
+  const recipesRef = React.useRef<Array<HTMLSelectElement | null>>([]);
   // const actionData = useActionData<typeof action>();
-
-  // const selectRef = React.useRef<HTMLSelectElement>(null);
-  // const titleRef = React.useRef<HTMLInputElement>(null);
-  // const bodyRef = React.useRef<HTMLTextAreaElement>(null);
 
   // React.useEffect(() => {
   //   if (actionData?.errors?.title) {
@@ -63,6 +62,28 @@ export default function NewMenu() {
   //   }
   // }, [actionData]);
 
+  React.useEffect(() => {
+    console.log(recipesId);
+    if (nameRef.current?.value === "" && recipesId.length === 1) {
+      nameRef.current?.focus();
+      nameRef.current?.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+    if (recipesRef.current.at(-1) !== null) {
+      recipesRef.current.at(-1)?.focus();
+      recipesRef.current.at(-1)?.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+    if (recipesRef.current.includes(null)) {
+      recipesRef.current = recipesRef.current.filter(Boolean);
+      return;
+    }
+  }, [recipesId]);
+
+  function handleAddRecipe() {
+    setRecipesId((prev) => [...prev, `${prev.at(-1)}-${prev.length}`]);
+  }
+
   return (
     <Form method="post">
       <div className="pb-32">
@@ -71,8 +92,20 @@ export default function NewMenu() {
           <Heading as="h3" weight="medium">
             Details
           </Heading>
-          <TextField id="name" name="name" label="name" />
-          <TextField id="description" name="description" label="description" />
+          <TextField
+            id="name"
+            name="name"
+            label="name"
+            ref={nameRef}
+            required
+          />
+          <TextField
+            id="description"
+            name="description"
+            label="description"
+            ref={descriptionRef}
+            required
+          />
           <Heading as="h3" weight="medium">
             Recipes
           </Heading>
@@ -80,7 +113,19 @@ export default function NewMenu() {
             {recipesId.map((id, index) => (
               <li className="flex items-center w-full gap-4" key={id}>
                 <div className="w-full">
-                  <SelectField id={`recipe-${id}`} name="recipe" label="recipe">
+                  <SelectField
+                    key={id}
+                    ref={(node) => {
+                      // console.log("a", node, index);
+                      // console.log("b", node, recipesRef.current[index], index);
+                      recipesRef.current[index] = node;
+                      // console.log(node === null, index);
+                    }}
+                    id={`recipe-${id}`}
+                    name="recipe"
+                    label="recipe"
+                    required
+                  >
                     {data.recipes.map((recipe) => (
                       <option key={recipe.id} value={recipe.id}>
                         {recipe.name}
@@ -106,16 +151,7 @@ export default function NewMenu() {
       </div>
       <div className="fixed bottom-0 left-0 right-0 grid gap-4 px-6 pb-4 bg-white">
         <hr className="pb-0.5" />
-        <Button
-          type="button"
-          size="sm"
-          onClick={() =>
-            setRecipesId((prev) => [
-              ...prev,
-              `${prev[prev.length]}-${prev.length}`,
-            ])
-          }
-        >
+        <Button type="button" size="sm" onClick={handleAddRecipe}>
           +
         </Button>
         <Button type="submit" size="sm" disabled={recipesId.length === 0} fill>
