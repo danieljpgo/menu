@@ -1,3 +1,4 @@
+import * as React from "react";
 import { Input, Label } from "~/components";
 
 type TextFieldProps = {
@@ -10,23 +11,27 @@ type TextFieldProps = {
   required?: boolean;
 };
 
-export default function TextField(props: TextFieldProps) {
-  const { id, label, name, disabled, required, value, defaultValue } = props;
+const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(
+  function TextField(props, ref) {
+    const { id, label, name, disabled, required, value, defaultValue } = props;
+    return (
+      <div>
+        <Label status={disabled ? "disabled" : "none"} htmlFor={id}>
+          {label}
+        </Label>
+        <Input
+          id={id}
+          ref={ref}
+          type="text"
+          name={name}
+          value={value}
+          defaultValue={defaultValue}
+          required={required}
+          disabled={disabled}
+        />
+      </div>
+    );
+  }
+);
 
-  return (
-    <div>
-      <Label status={disabled ? "disabled" : "none"} htmlFor={id}>
-        {label}
-      </Label>
-      <Input
-        id={id}
-        type="text"
-        name={name}
-        value={value}
-        defaultValue={defaultValue}
-        required={required}
-        disabled={disabled}
-      />
-    </div>
-  );
-}
+export default TextField;
