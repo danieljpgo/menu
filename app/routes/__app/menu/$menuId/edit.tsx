@@ -2,6 +2,7 @@ import type { ActionArgs, LoaderArgs, MetaFunction } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { Form, useLoaderData } from "@remix-run/react";
 import * as React from "react";
+import { notFound } from "lib/remix";
 import { z } from "zod";
 import {
   Button,
@@ -11,8 +12,9 @@ import {
   Text,
   TextField,
 } from "~/components";
-import { prisma } from "~/server/db.server";
 import { requireUserId } from "~/server/session.server";
+import { getMenu, updateMenu } from "~/server/menu.server";
+import { getRecipes } from "~/server/recipe.server";
 
 export const meta: MetaFunction = () => ({
   title: `Menu - New`,
@@ -29,23 +31,14 @@ const formSchema = z.object({
 });
 
 export async function loader({ request, params }: LoaderArgs) {
-  await requireUserId(request);
+  const userId = await requireUserId(request);
   const validation = schema.safeParse(params);
-
   if (!validation.success) {
-    throw new Error(validation.error.issues[0].message);
+    throw new Error(validation.error.issues[0].message); // @TODO handle error case
   }
-  const menu = await prisma.menu.findUnique({
-    where: { id: validation.data.menuId },
-    include: { recipes: true },
-  });
-
-  if (!menu) {
-    throw new Response("Not Found", { status: 404 });
-  }
-  const recipes = await prisma.recipe.findMany({
-    orderBy: { name: "desc" },
-  });
+  const menu = await getMenu(validation.data.menuId);
+  if (!menu) throw notFound();
+  const recipes = await getRecipes({ userId });
   return json({ recipes, menu });
 }
 
@@ -59,42 +52,12 @@ export async function action({ request, params }: ActionArgs) {
     menuId: params.menuId,
   });
 
-  // @TODO better error handler
   if (!validation.success) {
-    return json({ errors: { name: null, body: null } }, { status: 400 });
+    return json({ errors: { name: null, body: null } }, { status: 400 }); // @TODO better error handler
   }
-
-  const form = validation.data;
-  const menu = await prisma.menu.findUnique({
-    where: { id: validation.data.menuId },
-    include: {
-      recipes: true,
-    },
-  });
-
-  if (!menu) {
-    throw new Response("Not Found", { status: 404 });
-  }
-
-  const disconnectRecipes = menu.recipes.filter(
-    (recipe) => !form.recipes.some((id) => id === recipe.id)
-  );
-  const connectRecipes = form.recipes.filter(
-    (id) => !menu.recipes.some((recipe) => recipe.id === id)
-  );
-
-  const newMenu = await prisma.menu.update({
-    where: { id: form.menuId },
-    data: {
-      name: form.name,
-      description: form.description,
-      recipes: {
-        disconnect: disconnectRecipes.map(({ id }) => ({ id })),
-        connect: connectRecipes.map((id) => ({ id })),
-      },
-    },
-  });
-  return redirect(`/menu/${newMenu.id}`);
+  const menu = await updateMenu(validation.data.menuId, validation.data);
+  if (!menu) throw notFound();
+  return redirect(`/menu/${menu.id}`);
 }
 
 export default function NewMenu() {

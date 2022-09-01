@@ -2,9 +2,10 @@ import type { ActionArgs, LoaderArgs, MetaFunction } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { Form, Link, useCatch, useLoaderData } from "@remix-run/react";
 import { portions } from "lib/ingredients";
+import { notFound } from "lib/remix";
 import { z } from "zod";
 import { Button, Heading, Shelf, Stack, Text } from "~/components";
-import { prisma } from "~/server/db.server";
+import { deleteMenu, getMenu } from "~/server/menu.server";
 import { requireUserId } from "~/server/session.server";
 
 export const meta: MetaFunction = ({ data }) => ({
@@ -16,45 +17,23 @@ const schema = z.object({
 });
 
 export async function loader({ request, params }: LoaderArgs) {
-  const userId = await requireUserId(request);
+  await requireUserId(request);
   const validation = schema.safeParse(params);
-
   if (!validation.success) {
-    const { message } = validation.error.issues[0];
-    throw new Error(message);
+    throw new Error(validation.error.issues[0].message);
   }
-
-  const menu = await prisma.menu.findFirst({
-    include: {
-      recipes: {
-        include: {
-          ingredients: {
-            include: { ingredient: true },
-          },
-        },
-      },
-    },
-    where: { id: params.menuId, userId },
-  });
-  if (!menu) {
-    throw new Response("Not Found", { status: 404 });
-  }
+  const menu = await getMenu(validation.data.menuId);
+  if (!menu) throw notFound();
   return json({ menu });
 }
 
 export async function action({ request, params }: ActionArgs) {
-  const userId = await requireUserId(request);
+  await requireUserId(request);
   const validation = schema.safeParse(params);
-
   if (!validation.success) {
-    const { message } = validation.error.issues[0];
-    throw new Error(message);
+    throw new Error(validation.error.issues[0].message);
   }
-
-  await prisma.menu.deleteMany({
-    where: { id: params.menuId, userId },
-  });
-
+  await deleteMenu(validation.data.menuId);
   return redirect("/menu");
 }
 

@@ -1,9 +1,9 @@
 import type { LoaderArgs, MetaFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Link, Outlet, useLoaderData } from "@remix-run/react";
-import { prisma } from "~/server/db.server";
 import { requireUserId } from "~/server/session.server";
 import { Heading, NavLink, Shelf } from "~/components";
+import { getMenus } from "~/server/menu.server";
 
 export const meta: MetaFunction = () => ({
   title: "Menu",
@@ -11,9 +11,8 @@ export const meta: MetaFunction = () => ({
 
 export async function loader({ request }: LoaderArgs) {
   const userId = await requireUserId(request);
-  const menus = await prisma.menu.findMany({
-    where: { userId },
-  });
+  const menus = await getMenus({ userId });
+
   return json({ menus });
 }
 

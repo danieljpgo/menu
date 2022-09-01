@@ -11,7 +11,8 @@ import {
   Text,
   TextField,
 } from "~/components";
-import { prisma } from "~/server/db.server";
+import { createMenu } from "~/server/menu.server";
+import { getRecipes } from "~/server/recipe.server";
 import { requireUserId } from "~/server/session.server";
 
 export const meta: MetaFunction = () => ({
@@ -25,10 +26,8 @@ const schema = z.object({
 });
 
 export async function loader({ request }: LoaderArgs) {
-  await requireUserId(request);
-  const recipes = await prisma.recipe.findMany({
-    orderBy: { name: "desc" },
-  });
+  const userId = await requireUserId(request);
+  const recipes = await getRecipes({ userId });
   return json({ recipes });
 }
 
@@ -40,25 +39,10 @@ export async function action({ request }: ActionArgs) {
     description: formData.get("description"),
     recipes: formData.getAll("recipe"),
   });
-
-  // @TODO better error handler
   if (!validation.success) {
-    return json({ errors: { name: null, body: null } }, { status: 400 });
+    return json({ errors: { name: null, body: null } }, { status: 400 }); // @TODO better error handler
   }
-
-  const form = validation.data;
-  const menu = await prisma.menu.create({
-    data: {
-      name: form.name,
-      description: form.description,
-      recipes: {
-        connect: form.recipes.map((recipe) => ({
-          id: recipe,
-        })),
-      },
-      user: { connect: { id: userId } },
-    },
-  });
+  const menu = await createMenu({ ...validation.data, userId });
   return redirect(`/menu/${menu.id}`);
 }
 
