@@ -2,7 +2,7 @@ import * as React from "react";
 import { Spinner } from "~/components";
 
 const sizes = {
-  sm: "px-3 py-1.5 text-sm ",
+  sm: "px-3 py-1.5 text-sm",
   md: "px-4 py-2",
 };
 
@@ -13,7 +13,7 @@ type ButtonProps = {
   loading?: boolean;
   name?: React.ButtonHTMLAttributes<HTMLButtonElement>["name"];
   value?: React.ButtonHTMLAttributes<HTMLButtonElement>["value"];
-  size?: "sm" | "md";
+  size?: keyof typeof sizes;
   type?: React.ButtonHTMLAttributes<HTMLButtonElement>["type"];
   onClick?: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
 };

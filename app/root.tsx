@@ -49,7 +49,7 @@ function Document(props: DocumentProps) {
         <title>{title}</title>
         <Links />
       </head>
-      <body className="h-full">
+      <body className="flex flex-col h-full">
         {children}
         <ScrollRestoration />
         <Scripts />
@@ -104,3 +104,5 @@ export function ErrorBoundary({ error }: { error: Error }) {
     </Document>
   );
 }
+
+// @TODO Improve ErrorBoundary and CatchBoundary
