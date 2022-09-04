@@ -1,4 +1,4 @@
-import { validateEmail } from "./utils";
+import { validateEmail } from "./remix";
 
 test("validateEmail returns false for non-emails", () => {
   expect(validateEmail(undefined)).toBe(false);
