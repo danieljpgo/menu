@@ -9,14 +9,22 @@ type TextFieldProps = {
   defaultValue?: string;
   disabled?: boolean;
   required?: boolean;
+  status?: "error";
 };
 
 const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(
   function TextField(props, ref) {
-    const { id, label, name, disabled, required, value, defaultValue } = props;
+    const { id, label, name, disabled, required, value, defaultValue, status } =
+      props;
+
     return (
       <div>
-        <Label status={disabled ? "disabled" : "none"} htmlFor={id}>
+        <Label
+          htmlFor={id}
+          status={status}
+          required={required}
+          disabled={disabled}
+        >
           {label}
         </Label>
         <Input

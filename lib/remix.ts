@@ -1,5 +1,5 @@
 import { useMatches } from "@remix-run/react";
-import { redirect } from "@remix-run/server-runtime";
+import { json, redirect } from "@remix-run/server-runtime";
 import { useMemo } from "react";
 
 import type { User } from "~/server/user.server";
@@ -72,23 +72,30 @@ export function validateEmail(email: unknown): email is string {
 }
 
 /**
- * Create a new Response with a permanently redirect using `301` as status code.
+ * Create a response with a permanently redirect using `301` as status code.
  */
 export function redirectPermanently(
   url: string,
   init?: Omit<ResponseInit, "status">
 ) {
-  return redirect(url, {
-    ...init,
-    status: 301,
-  });
+  return redirect(url, { ...init, status: 301 });
 }
 
 /**
- * Create a new Response with a Not Found error using `404` as status code.
+ * Create a response with a Not Found error using `404` as status code.
  */
 export function notFound(init?: Omit<ResponseInit, "status">) {
-  return new Response("Not Found", { ...init, status: 404 });
+  return json("Not Found", { ...init, status: 404 });
+}
+
+/**
+ * Create a response receiving a JSON object with the status code `400`.
+ */
+export function badRequest<Data = unknown>(
+  data: Data,
+  init?: Omit<ResponseInit, "status">
+) {
+  return json<Data>(data, { ...init, status: 400 });
 }
 
 // /**

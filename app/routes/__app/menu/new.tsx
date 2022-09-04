@@ -1,8 +1,11 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from "@remix-run/node";
-import { json, redirect } from "@remix-run/node";
-import { Form, useLoaderData } from "@remix-run/react";
 import * as React from "react";
+import { json, redirect } from "@remix-run/node";
+import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { z } from "zod";
+import { createMenu } from "~/server/menu.server";
+import { getRecipes } from "~/server/recipe.server";
+import { requireUserId } from "~/server/session.server";
 import {
   Button,
   Heading,
@@ -11,23 +14,23 @@ import {
   Text,
   TextField,
 } from "~/components";
-import { createMenu } from "~/server/menu.server";
-import { getRecipes } from "~/server/recipe.server";
-import { requireUserId } from "~/server/session.server";
+import { badRequest } from "lib/remix";
 
 export const meta: MetaFunction = () => ({
   title: `Menu - New`,
 });
 
 const schema = z.object({
-  name: z.string(),
-  description: z.string(),
-  recipes: z.array(z.string()),
+  name: z.string().min(3, "Should be at least 3 characters"),
+  description: z.string().min(10, "Should be at least 10 characters"),
+  recipes: z
+    .array(z.string({ required_error: "Select a recipe" }))
+    .min(1, "Should be at least 1 recipe"),
 });
 
 export async function loader({ request }: LoaderArgs) {
   const userId = await requireUserId(request);
-  const recipes = await getRecipes({ userId });
+  const recipes = await getRecipes(userId);
   return json({ recipes });
 }
 
@@ -40,7 +43,16 @@ export async function action({ request }: ActionArgs) {
     recipes: formData.getAll("recipe"),
   });
   if (!validation.success) {
-    return json({ errors: { name: null, body: null } }, { status: 400 }); // @TODO better error handler
+    return badRequest({
+      formError: validation.error.formErrors.formErrors,
+      fieldErrors: { ...validation.error.formErrors.fieldErrors },
+      fields: {
+        name: formData.get("name"),
+        description: formData.get("description"),
+      },
+    });
+    // return json({ formError: "", fields: {} });
+    // return json({ errors: { name: null, body: null } }, { status: 400 }); // @TODO better error handler
   }
   const menu = await createMenu({ ...validation.data, userId });
   return redirect(`/menu/${menu.id}`);
@@ -48,22 +60,25 @@ export async function action({ request }: ActionArgs) {
 
 export default function NewMenu() {
   const data = useLoaderData<typeof loader>();
+  const actionData = useActionData<typeof action>();
+
   const [recipesId, setRecipesId] = React.useState([""]);
   const nameRef = React.useRef<HTMLInputElement>(null);
   const descriptionRef = React.useRef<HTMLInputElement>(null);
   const recipesRef = React.useRef<Array<HTMLSelectElement | null>>([]);
-  // const actionData = useActionData<typeof action>();
-
-  // React.useEffect(() => {
-  //   if (actionData?.errors?.title) {
-  //     titleRef.current?.focus();
-  //   } else if (actionData?.errors?.body) ws{
-  //     bodyRef.current?.focus();
-  //   }
-  // }, [actionData]);
 
   React.useEffect(() => {
-    console.log(recipesId);
+    if (actionData?.fieldErrors.name) {
+      nameRef.current?.focus();
+      return;
+    }
+    if (actionData?.fieldErrors?.description) {
+      descriptionRef.current?.focus();
+      return;
+    }
+  }, [actionData]);
+
+  React.useEffect(() => {
     if (nameRef.current?.value === "" && recipesId.length === 1) {
       nameRef.current?.focus();
       nameRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -96,6 +111,7 @@ export default function NewMenu() {
             id="name"
             name="name"
             label="name"
+            status={actionData?.fieldErrors.name ? "error" : undefined}
             ref={nameRef}
             required
           />
@@ -115,12 +131,7 @@ export default function NewMenu() {
                 <div className="w-full">
                   <SelectField
                     key={id}
-                    ref={(node) => {
-                      // console.log("a", node, index);
-                      // console.log("b", node, recipesRef.current[index], index);
-                      recipesRef.current[index] = node;
-                      // console.log(node === null, index);
-                    }}
+                    ref={(node) => (recipesRef.current[index] = node)}
                     id={`recipe-${id}`}
                     name="recipe"
                     label="recipe"

@@ -1,6 +1,9 @@
 import * as React from "react";
 
 // @TODO remove classname
+// @TODO status error + animations
+// @TODO disabled animations
+
 type InputProps = React.DetailedHTMLProps<
   React.InputHTMLAttributes<HTMLInputElement>,
   HTMLInputElement

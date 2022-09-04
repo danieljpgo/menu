@@ -1,20 +1,37 @@
+const statusColor = {
+  none: "",
+  error: "text-red-700",
+};
+
 type LabelProps = {
   htmlFor: string;
   children: string;
-  status?: "none" | "disabled";
+  disabled?: boolean;
+  status?: "error";
+  required?: boolean;
 };
 
 export default function Label(props: LabelProps) {
-  const { children, htmlFor, status = "none" } = props;
+  const { children, htmlFor, required, status, disabled } = props;
 
   return (
     <label
-      className={`${
-        status === "disabled" ? "opacity-75" : ""
-      } mb-2 block text-sm font-medium leading-4 text-gray-600`}
       htmlFor={htmlFor}
+      className={`
+        mb-2 block text-sm font-medium leading-4 text-gray-600 transition-opacity duration-200
+        ${disabled ? "opacity-75" : ""}
+      `}
     >
       {children}
+      {required && (
+        <span
+          className={`transition-colors duration-200 ${
+            status && statusColor[status]
+          }`}
+        >
+          &nbsp;*
+        </span>
+      )}
     </label>
   );
 }

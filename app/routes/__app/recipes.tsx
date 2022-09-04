@@ -8,7 +8,7 @@ import { requireUserId } from "~/server/session.server";
 
 export async function loader({ request }: LoaderArgs) {
   const userId = await requireUserId(request);
-  const recipes = await getRecipes({ userId });
+  const recipes = await getRecipes(userId);
   return json({ recipes });
 }
 

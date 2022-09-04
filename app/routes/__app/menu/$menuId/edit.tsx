@@ -38,7 +38,7 @@ export async function loader({ request, params }: LoaderArgs) {
   }
   const menu = await getMenu(validation.data.menuId);
   if (!menu) throw notFound();
-  const recipes = await getRecipes({ userId });
+  const recipes = await getRecipes(userId);
   return json({ recipes, menu });
 }
 

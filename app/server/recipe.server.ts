@@ -2,6 +2,7 @@ import { prisma } from "./db.server";
 
 export function getRecipe(id: string) {
   return prisma.recipe.findUnique({
+    where: { id },
     select: {
       id: true,
       description: true,
@@ -13,14 +14,12 @@ export function getRecipe(id: string) {
         },
       },
     },
-    where: { id },
   });
 }
 
-export function getRecipes({ userId }: { userId: string }) {
+export function getRecipes(userId: string) {
   return prisma.recipe.findMany({
     where: { userId },
-    orderBy: { name: "asc" },
     select: {
       ingredients: {
         select: {
@@ -33,6 +32,7 @@ export function getRecipes({ userId }: { userId: string }) {
       name: true,
       description: true,
     },
+    orderBy: { name: "asc" },
   });
 }
 
