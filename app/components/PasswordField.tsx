@@ -15,7 +15,7 @@ export default function PasswordField(props: PasswordFieldProps) {
 
   return (
     <div>
-      <Label htmlFor={id} status={disabled ? "disabled" : "none"}>
+      <Label htmlFor={id} disabled={disabled}>
         {label}
       </Label>
       <Input

@@ -29,7 +29,7 @@ const SelectField = React.forwardRef<HTMLSelectElement, SelectFieldProps>(
 
     return (
       <div>
-        <Label status={disabled ? "disabled" : "none"} htmlFor={id}>
+        <Label disabled={disabled} htmlFor={id}>
           {label}
         </Label>
         <Select

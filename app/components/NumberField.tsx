@@ -25,7 +25,7 @@ export default function NumberField(props: NumberFieldProps) {
 
   return (
     <div>
-      <Label status={disabled ? "disabled" : "none"} htmlFor={id}>
+      <Label disabled={disabled} htmlFor={id}>
         {label}
       </Label>
       <Input

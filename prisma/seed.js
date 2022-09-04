@@ -255,6 +255,11 @@ const ingredients = [
     name: "Farinha - Trigo",
     unit: "g",
   },
+  {
+    id: "51",
+    name: "Requeijão",
+    unit: "g",
+  },
 ];
 
 const prisma = new PrismaClient();
