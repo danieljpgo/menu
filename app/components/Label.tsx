@@ -1,6 +1,5 @@
-const statusColor = {
-  none: "",
-  error: "text-red-700",
+const colors = {
+  error: "text-red-500",
 };
 
 type LabelProps = {
@@ -25,9 +24,10 @@ export default function Label(props: LabelProps) {
       {children}
       {required && (
         <span
-          className={`transition-colors duration-200 ${
-            status && statusColor[status]
-          }`}
+          className={`
+            transition-colors duration-200 
+            ${status && colors[status]}
+          `}
         >
           &nbsp;*
         </span>

@@ -3,6 +3,7 @@ import * as React from "react";
 import { json, redirect } from "@remix-run/node";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { z } from "zod";
+import { badRequest } from "lib/remix";
 import { createMenu } from "~/server/menu.server";
 import { getRecipes } from "~/server/recipe.server";
 import { requireUserId } from "~/server/session.server";
@@ -14,7 +15,6 @@ import {
   Text,
   TextField,
 } from "~/components";
-import { badRequest } from "lib/remix";
 
 export const meta: MetaFunction = () => ({
   title: `Menu - New`,
@@ -25,7 +25,7 @@ const schema = z.object({
   description: z.string().min(10, "Should be at least 10 characters"),
   recipes: z
     .array(z.string({ required_error: "Select a recipe" }))
-    .min(1, "Should be at least 1 recipe"),
+    .min(1, "Should be at least 1 recipe"), // repetitive itens with zod
 });
 
 export async function loader({ request }: LoaderArgs) {
@@ -49,10 +49,9 @@ export async function action({ request }: ActionArgs) {
       fields: {
         name: formData.get("name"),
         description: formData.get("description"),
+        recipes: formData.getAll("recipes"),
       },
     });
-    // return json({ formError: "", fields: {} });
-    // return json({ errors: { name: null, body: null } }, { status: 400 }); // @TODO better error handler
   }
   const menu = await createMenu({ ...validation.data, userId });
   return redirect(`/menu/${menu.id}`);
@@ -111,8 +110,9 @@ export default function NewMenu() {
             id="name"
             name="name"
             label="name"
-            status={actionData?.fieldErrors.name ? "error" : undefined}
             ref={nameRef}
+            hint={actionData?.fieldErrors.name?.[0]}
+            status={actionData?.fieldErrors.name ? "error" : undefined}
             required
           />
           <TextField
@@ -120,6 +120,8 @@ export default function NewMenu() {
             name="description"
             label="description"
             ref={descriptionRef}
+            hint={actionData?.fieldErrors.description?.[0]}
+            status={actionData?.fieldErrors.description ? "error" : undefined}
             required
           />
           <Heading as="h3" weight="medium">
