@@ -7,6 +7,7 @@ import { badRequest } from "lib/remix";
 import { createMenu } from "~/server/menu.server";
 import { getRecipes } from "~/server/recipe.server";
 import { requireUserId } from "~/server/session.server";
+import { useHydrated } from "~/hooks";
 import {
   Button,
   Heading,
@@ -25,7 +26,10 @@ const schema = z.object({
   description: z.string().min(10, "Should be at least 10 characters"),
   recipes: z
     .array(z.string({ required_error: "Select a recipe" }))
-    .min(1, "Should be at least 1 recipe"), // repetitive itens with zod
+    .min(1, "Should be at least 1 recipe")
+    .refine((array) => !array.some((e, i, a) => a.indexOf(e) !== i), {
+      message: "Should not repeat the recipes",
+    }),
 });
 
 export async function loader({ request }: LoaderArgs) {
@@ -42,6 +46,43 @@ export async function action({ request }: ActionArgs) {
     description: formData.get("description"),
     recipes: formData.getAll("recipe"),
   });
+  console.log("a");
+  if (formData.get("action") === "add") {
+    return json({
+      formError: [],
+      fieldErrors: {
+        name: null,
+        description: null,
+        recipes: [null],
+      },
+      fields: {
+        name: formData.get("name"),
+        description: formData.get("description"),
+        recipes: [...formData.getAll("recipe").map(String), ""],
+      },
+    });
+  }
+  if (formData.get("action") === "remove") {
+    return json({
+      formError: [],
+      fieldErrors: {
+        name: null,
+        description: null,
+        recipes: [null],
+      },
+      fields: {
+        name: formData.get("name"),
+        description: formData.get("description"),
+        recipes: formData
+          .getAll("recipe")
+          .map(String)
+          .filter(
+            (_, i) => Number(formData.get("removeIndex")?.toString()) !== i
+          ),
+      },
+    });
+  }
+
   if (!validation.success) {
     return badRequest({
       formError: validation.error.formErrors.formErrors,
@@ -49,7 +90,7 @@ export async function action({ request }: ActionArgs) {
       fields: {
         name: formData.get("name"),
         description: formData.get("description"),
-        recipes: formData.getAll("recipes"),
+        recipes: formData.getAll("recipe").map(String),
       },
     });
   }
@@ -60,11 +101,19 @@ export async function action({ request }: ActionArgs) {
 export default function NewMenu() {
   const data = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
-
-  const [recipesId, setRecipesId] = React.useState([""]);
+  const [recipesIdState, setRecipesIdState] = React.useState([""]);
   const nameRef = React.useRef<HTMLInputElement>(null);
   const descriptionRef = React.useRef<HTMLInputElement>(null);
   const recipesRef = React.useRef<Array<HTMLSelectElement | null>>([]);
+  const hydrated = useHydrated();
+
+  const repetitiveRecipesIndex = actionData?.fields.recipes.map(
+    (recipe, i, arr) => (recipe ? (arr.indexOf(recipe) !== i ? i : -1) : -1)
+  );
+
+  const recipesId = hydrated
+    ? recipesIdState
+    : actionData?.fields.recipes ?? [""];
 
   React.useEffect(() => {
     if (actionData?.fieldErrors.name) {
@@ -78,24 +127,33 @@ export default function NewMenu() {
   }, [actionData]);
 
   React.useEffect(() => {
-    if (nameRef.current?.value === "" && recipesId.length === 1) {
+    if (nameRef.current?.value === "" && recipesIdState.length === 1) {
       nameRef.current?.focus();
       nameRef.current?.scrollIntoView({ behavior: "smooth" });
       return;
     }
+    console.log(recipesRef, "<<");
     if (recipesRef.current.at(-1) !== null) {
+      console.log(recipesRef);
       recipesRef.current.at(-1)?.focus();
       recipesRef.current.at(-1)?.scrollIntoView({ behavior: "smooth" });
       return;
     }
     if (recipesRef.current.includes(null)) {
+      console.log(recipesRef, "<<");
       recipesRef.current = recipesRef.current.filter(Boolean);
+
       return;
     }
-  }, [recipesId]);
+  }, [recipesIdState]);
 
   function handleAddRecipe() {
-    setRecipesId((prev) => [...prev, `${prev.at(-1)}-${prev.length}`]);
+    if (!hydrated) return;
+    setRecipesIdState((prev) => [...prev, `${prev.at(-1)}-${prev.length}`]);
+  }
+  function handleRemoveRecipe(index: number) {
+    if (!hydrated) return;
+    setRecipesIdState((prev) => prev.filter((_, i) => index !== i));
   }
 
   return (
@@ -113,6 +171,7 @@ export default function NewMenu() {
             ref={nameRef}
             hint={actionData?.fieldErrors.name?.[0]}
             status={actionData?.fieldErrors.name ? "error" : undefined}
+            defaultValue={actionData?.fields.name?.toString()}
             required
           />
           <TextField
@@ -122,6 +181,7 @@ export default function NewMenu() {
             ref={descriptionRef}
             hint={actionData?.fieldErrors.description?.[0]}
             status={actionData?.fieldErrors.description ? "error" : undefined}
+            defaultValue={actionData?.fields.description?.toString()}
             required
           />
           <Heading as="h3" weight="medium">
@@ -129,14 +189,26 @@ export default function NewMenu() {
           </Heading>
           <Stack as="ol" gap="md">
             {recipesId.map((id, index) => (
-              <li className="flex items-center w-full gap-4" key={id}>
+              <li
+                className="flex items-center w-full gap-4"
+                key={`${id}-${index}`}
+              >
                 <div className="w-full">
                   <SelectField
                     key={id}
-                    ref={(node) => (recipesRef.current[index] = node)}
                     id={`recipe-${id}`}
                     name="recipe"
                     label="recipe"
+                    ref={(node) => (recipesRef.current[index] = node)}
+                    hint={
+                      repetitiveRecipesIndex?.includes(index)
+                        ? actionData?.fieldErrors.recipes?.[0]?.toString()
+                        : undefined
+                    }
+                    status={
+                      actionData?.fieldErrors.recipes ? "error" : undefined
+                    }
+                    defaultValue={actionData?.fields.recipes[index]?.toString()}
                     required
                   >
                     {data.recipes.map((recipe) => (
@@ -146,13 +218,14 @@ export default function NewMenu() {
                     ))}
                   </SelectField>
                 </div>
-                <div className="pt-6">
+                <div className="mt-0.5 self-start pt-6">
+                  <input type="hidden" name="removeIndex" value={index} />
                   <Button
-                    type="button"
+                    type={hydrated ? "button" : "submit"}
                     size="sm"
-                    onClick={() =>
-                      setRecipesId((prev) => prev.filter((_, i) => index !== i))
-                    }
+                    name="action"
+                    value="remove"
+                    onClick={() => handleRemoveRecipe(index)}
                   >
                     -
                   </Button>
@@ -164,10 +237,23 @@ export default function NewMenu() {
       </div>
       <div className="fixed bottom-0 left-0 right-0 grid gap-4 px-6 pb-4 bg-white">
         <hr className="pb-0.5" />
-        <Button type="button" size="sm" onClick={handleAddRecipe}>
+        <Button
+          type={hydrated ? "button" : "submit"}
+          size="sm"
+          name="action"
+          value="add"
+          onClick={handleAddRecipe}
+        >
           +
         </Button>
-        <Button type="submit" size="sm" disabled={recipesId.length === 0} fill>
+        <Button
+          type="submit"
+          size="sm"
+          name="action"
+          value="save"
+          disabled={recipesId.length === 0}
+          fill
+        >
           save
         </Button>
       </div>
@@ -175,75 +261,6 @@ export default function NewMenu() {
   );
 }
 
-/* <label className="leading-4" htmlFor="name">
-        name
-      </label>
-      <input
-        id="name"
-        name="name"
-        className="flex-1 px-3 text-lg border-2 border-blue-500 rounded-md"
-        // aria-invalid={actionData?.errors?.name ? true : undefined}
-        // aria-errormessage={
-        // actionData?.errors?.name ? "title-error" : undefined
-        // }
-      /> */
-
-/* <label className="leading-4" htmlFor="description">
-        description
-      </label>
-      <input
-        id="description"
-        name="description"
-        className="flex-1 px-3 text-lg border-2 border-blue-500 rounded-md"
-        // aria-invalid={actionData?.errors?.name ? true : undefined}
-        // aria-errormessage={
-        // actionData?.errors?.name ? "title-error" : undefined
-        // }
-      /> */
-
-/* <div>
-        <label className="flex flex-col w-full gap-1">
-          <span>Title: </span>
-          <input
-            ref={titleRef}
-            name="title"
-            className="flex-1 px-3 text-lg border-2 border-blue-500 rounded-md"
-            aria-invalid={actionData?.errors?.title ? true : undefined}
-            aria-errormessage={
-              actionData?.errors?.title ? "title-error" : undefined
-            }
-          />
-        </label>
-        {actionData?.errors?.title && (
-          <div className="pt-1 text-red-700" id="title-error">
-            {actionData.errors.title}
-          </div>
-        )}
-      </div>
-
-      <div>
-        <label className="flex flex-col w-full gap-1">
-          <span>Body: </span>
-          <textarea
-            ref={bodyRef}
-            name="body"
-            rows={8}
-            className="flex-1 w-full px-3 py-2 text-lg leading-6 border-2 border-blue-500 rounded-md"
-            aria-invalid={actionData?.errors?.body ? true : undefined}
-            aria-errormessage={
-              actionData?.errors?.body ? "body-error" : undefined
-            }
-          />
-        </label>
-        {actionData?.errors?.body && (
-          <div className="pt-1 text-red-700" id="body-error">
-            {actionData.errors.body}
-          </div>
-        )}
-      </div>
-*/
 // @TODO handle ingredient value selection
-// @TODO handle focus in better way
-// @TODO focus on input again when clicking add more
 // @TODO check the reason for the multiplies render
 // @TODO create a good error screen
