@@ -16,6 +16,7 @@ import {
   Text,
   TextField,
 } from "~/components";
+import { isBrowser } from "lib/browser";
 
 export const meta: MetaFunction = () => ({
   title: `Menu - New`,
@@ -46,7 +47,7 @@ export async function action({ request }: ActionArgs) {
     description: formData.get("description"),
     recipes: formData.getAll("recipe"),
   });
-  console.log("a");
+
   if (formData.get("action") === "add") {
     return json({
       formError: [],
@@ -101,60 +102,78 @@ export async function action({ request }: ActionArgs) {
 export default function NewMenu() {
   const data = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
-  const [recipesIdState, setRecipesIdState] = React.useState([""]);
   const nameRef = React.useRef<HTMLInputElement>(null);
   const descriptionRef = React.useRef<HTMLInputElement>(null);
   const recipesRef = React.useRef<Array<HTMLSelectElement | null>>([]);
   const hydrated = useHydrated();
+  // const hydrated = true;
 
-  const repetitiveRecipesIndex = actionData?.fields.recipes.map(
-    (recipe, i, arr) => (recipe ? (arr.indexOf(recipe) !== i ? i : -1) : -1)
+  const [selectedRecipes, setSelectedRecipes] = React.useState([""]);
+
+  const repetitiveRecipesIndex = React.useMemo(
+    () =>
+      actionData?.fields.recipes.map((recipe, i, arr) =>
+        recipe ? (arr.indexOf(recipe) !== i ? i : -1) : -1
+      ),
+    [actionData?.fields.recipes]
   );
-
-  const recipesId = hydrated
-    ? recipesIdState
-    : actionData?.fields.recipes ?? [""];
 
   React.useEffect(() => {
     if (actionData?.fieldErrors.name) {
       nameRef.current?.focus();
+      nameRef.current?.scrollIntoView({ behavior: "smooth" });
       return;
     }
     if (actionData?.fieldErrors?.description) {
       descriptionRef.current?.focus();
+      descriptionRef.current?.scrollIntoView({ behavior: "smooth" });
       return;
     }
-  }, [actionData]);
+    if (actionData?.fieldErrors?.recipes && repetitiveRecipesIndex) {
+      const index = repetitiveRecipesIndex.filter((a) => a !== -1);
+      recipesRef.current[index[0]]?.focus();
+      recipesRef.current[index[0]]?.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+  }, [actionData, repetitiveRecipesIndex]);
 
   React.useEffect(() => {
-    if (nameRef.current?.value === "" && recipesIdState.length === 1) {
+    if (nameRef.current?.value === "" && selectedRecipes.length === 1) {
       nameRef.current?.focus();
       nameRef.current?.scrollIntoView({ behavior: "smooth" });
       return;
     }
-    console.log(recipesRef, "<<");
-    if (recipesRef.current.at(-1) !== null) {
-      console.log(recipesRef);
+    if (recipesRef.current.at(-1)?.value === "") {
       recipesRef.current.at(-1)?.focus();
       recipesRef.current.at(-1)?.scrollIntoView({ behavior: "smooth" });
       return;
     }
     if (recipesRef.current.includes(null)) {
-      console.log(recipesRef, "<<");
       recipesRef.current = recipesRef.current.filter(Boolean);
-
       return;
     }
-  }, [recipesIdState]);
+  }, [selectedRecipes]);
 
   function handleAddRecipe() {
     if (!hydrated) return;
-    setRecipesIdState((prev) => [...prev, `${prev.at(-1)}-${prev.length}`]);
+    setSelectedRecipes((prev) => [...prev, ""]);
   }
+
   function handleRemoveRecipe(index: number) {
     if (!hydrated) return;
-    setRecipesIdState((prev) => prev.filter((_, i) => index !== i));
+    setSelectedRecipes((prev) => prev.filter((_, i) => index !== i));
   }
+
+  function handleSelectRecipe(index: number, selectedId: string) {
+    if (!hydrated) return;
+    setSelectedRecipes((prev) =>
+      prev.map((id, i) => (i === index ? selectedId : id))
+    );
+  }
+
+  const recipesId = hydrated
+    ? selectedRecipes
+    : actionData?.fields.recipes ?? [""];
 
   return (
     <Form method="post">
@@ -189,28 +208,36 @@ export default function NewMenu() {
           </Heading>
           <Stack as="ol" gap="md">
             {recipesId.map((id, index) => (
-              <li
-                className="flex items-center w-full gap-4"
-                key={`${id}-${index}`}
-              >
+              <li className="flex items-center w-full gap-4" key={`${index}`}>
                 <div className="w-full">
                   <SelectField
                     key={id}
                     id={`recipe-${id}`}
-                    name="recipe"
                     label="recipe"
+                    name="recipe"
+                    value={id}
+                    status={
+                      actionData?.fieldErrors.recipes ? "error" : undefined
+                    }
                     ref={(node) => (recipesRef.current[index] = node)}
                     hint={
                       repetitiveRecipesIndex?.includes(index)
                         ? actionData?.fieldErrors.recipes?.[0]?.toString()
                         : undefined
                     }
-                    status={
-                      actionData?.fieldErrors.recipes ? "error" : undefined
+                    defaultValue={
+                      !hydrated
+                        ? actionData?.fields.recipes[index]?.toString()
+                        : undefined
                     }
-                    defaultValue={actionData?.fields.recipes[index]?.toString()}
+                    onChange={(event) =>
+                      handleSelectRecipe(index, event.target.value)
+                    }
                     required
                   >
+                    <option disabled value="" defaultValue="">
+                      Choose a recipe
+                    </option>
                     {data.recipes.map((recipe) => (
                       <option key={recipe.id} value={recipe.id}>
                         {recipe.name}
