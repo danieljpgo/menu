@@ -1,5 +1,5 @@
 const colors = {
-  error: "text-red-500",
+  error: "text-red-400",
 };
 
 type LabelProps = {

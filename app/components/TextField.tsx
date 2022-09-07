@@ -1,6 +1,5 @@
 import * as React from "react";
-import { Input, Label } from "~/components";
-import Hint from "./Hint";
+import { Input, Label, Hint } from "~/components";
 
 type TextFieldProps = {
   id: string;
@@ -47,9 +46,19 @@ const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(
           defaultValue={defaultValue}
           required={required}
           disabled={disabled}
+          aria-invalid={Boolean(hint && status === "error")}
+          aria-errormessage={
+            hint && status === "error"
+              ? `${id}-hint-${status ?? ""}`
+              : undefined
+          }
         />
         {hint && (
-          <Hint htmlFor={id} status={status}>
+          <Hint
+            id={`${id}-hint-${status ?? ""}`}
+            status={status}
+            disabled={disabled}
+          >
             {hint}
           </Hint>
         )}

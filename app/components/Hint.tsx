@@ -3,7 +3,7 @@ const colors = {
 };
 
 type HintProps = {
-  htmlFor: string;
+  id: string;
   children: string;
   disabled?: boolean;
   status?: "error";
@@ -11,11 +11,11 @@ type HintProps = {
 };
 
 export default function Hint(props: HintProps) {
-  const { children, htmlFor, status, disabled } = props;
+  const { children, id, status, disabled } = props;
 
   return (
-    <label
-      htmlFor={htmlFor}
+    <p
+      id={id}
       className={`
         mt-2 block text-xs font-normal leading-4 text-gray-600 transition-opacity duration-200
         ${disabled ? "opacity-75" : ""}
@@ -23,6 +23,6 @@ export default function Hint(props: HintProps) {
       `}
     >
       {children}
-    </label>
+    </p>
   );
 }
