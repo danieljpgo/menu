@@ -16,22 +16,32 @@ import {
   Text,
   TextField,
 } from "~/components";
-import { isBrowser } from "lib/browser";
 
 export const meta: MetaFunction = () => ({
   title: `Menu - New`,
 });
 
-const schema = z.object({
-  name: z.string().min(3, "Should be at least 3 characters"),
-  description: z.string().min(10, "Should be at least 10 characters"),
-  recipes: z
-    .array(z.string({ required_error: "Select a recipe" }))
-    .min(1, "Should be at least 1 recipe")
-    .refine((array) => !array.some((e, i, a) => a.indexOf(e) !== i), {
-      message: "Should not repeat the recipes",
-    }),
-});
+const schema = z.union([
+  z.object({
+    action: z.literal("save"),
+    name: z.string().min(3, "Should be at least 3 characters"),
+    description: z.string().min(10, "Should be at least 10 characters"),
+    removeRecipe: z.string().transform((val) => Number(val)),
+    recipes: z
+      .array(z.string({ required_error: "Select a recipe" }))
+      .min(1, "Should be at least 1 recipe")
+      .refine((array) => !array.some((e, i, a) => a.indexOf(e) !== i), {
+        message: "Should not repeat the recipes",
+      }),
+  }),
+  z.object({
+    action: z.union([z.literal("add"), z.literal("remove")]),
+    name: z.string().optional(),
+    description: z.string().optional(),
+    removeRecipe: z.string().transform((val) => Number(val)),
+    recipes: z.array(z.string()),
+  }),
+]);
 
 export async function loader({ request }: LoaderArgs) {
   const userId = await requireUserId(request);
@@ -46,43 +56,9 @@ export async function action({ request }: ActionArgs) {
     name: formData.get("name"),
     description: formData.get("description"),
     recipes: formData.getAll("recipe"),
+    action: formData.get("action"),
+    removeRecipe: formData.get("removeRecipe"),
   });
-
-  if (formData.get("action") === "add") {
-    return json({
-      formError: [],
-      fieldErrors: {
-        name: null,
-        description: null,
-        recipes: [null],
-      },
-      fields: {
-        name: formData.get("name"),
-        description: formData.get("description"),
-        recipes: [...formData.getAll("recipe").map(String), ""],
-      },
-    });
-  }
-  if (formData.get("action") === "remove") {
-    return json({
-      formError: [],
-      fieldErrors: {
-        name: null,
-        description: null,
-        recipes: [null],
-      },
-      fields: {
-        name: formData.get("name"),
-        description: formData.get("description"),
-        recipes: formData
-          .getAll("recipe")
-          .map(String)
-          .filter(
-            (_, i) => Number(formData.get("removeIndex")?.toString()) !== i
-          ),
-      },
-    });
-  }
 
   if (!validation.success) {
     return badRequest({
@@ -95,8 +71,42 @@ export async function action({ request }: ActionArgs) {
       },
     });
   }
-  const menu = await createMenu({ ...validation.data, userId });
-  return redirect(`/menu/${menu.id}`);
+
+  const form = validation.data;
+  if (form.action === "add") {
+    return json({
+      formError: [],
+      fieldErrors: {
+        name: null,
+        description: null,
+        recipes: [null],
+      },
+      fields: {
+        ...form,
+        recipes: [...form.recipes, ""],
+      },
+    });
+  }
+  if (form.action === "remove") {
+    return json({
+      formError: [],
+      fieldErrors: {
+        name: null,
+        description: null,
+        recipes: [null],
+      },
+      fields: {
+        ...form,
+        recipes: form.recipes.filter((_, i) => form.removeRecipe !== i),
+      },
+    });
+  }
+  if (form.action === "save") {
+    const menu = await createMenu({ ...form, userId });
+    return redirect(`/menu/${menu.id}`);
+  }
+
+  return redirect("/menu/");
 }
 
 export default function NewMenu() {
@@ -105,10 +115,8 @@ export default function NewMenu() {
   const nameRef = React.useRef<HTMLInputElement>(null);
   const descriptionRef = React.useRef<HTMLInputElement>(null);
   const recipesRef = React.useRef<Array<HTMLSelectElement | null>>([]);
-  const hydrated = useHydrated();
-  // const hydrated = true;
-
   const [selectedRecipes, setSelectedRecipes] = React.useState([""]);
+  const hydrated = useHydrated();
 
   const repetitiveRecipesIndex = React.useMemo(
     () =>
@@ -171,7 +179,7 @@ export default function NewMenu() {
     );
   }
 
-  const recipesId = hydrated
+  const recipeIds = hydrated
     ? selectedRecipes
     : actionData?.fields.recipes ?? [""];
 
@@ -207,7 +215,7 @@ export default function NewMenu() {
             Recipes
           </Heading>
           <Stack as="ol" gap="md">
-            {recipesId.map((id, index) => (
+            {recipeIds.map((id, index) => (
               <li className="flex items-center w-full gap-4" key={`${index}`}>
                 <div className="w-full">
                   <SelectField
@@ -217,7 +225,9 @@ export default function NewMenu() {
                     name="recipe"
                     value={id}
                     status={
-                      actionData?.fieldErrors.recipes ? "error" : undefined
+                      repetitiveRecipesIndex?.includes(index)
+                        ? "error"
+                        : undefined
                     }
                     ref={(node) => (recipesRef.current[index] = node)}
                     hint={
@@ -230,9 +240,7 @@ export default function NewMenu() {
                         ? actionData?.fields.recipes[index]?.toString()
                         : undefined
                     }
-                    onChange={(event) =>
-                      handleSelectRecipe(index, event.target.value)
-                    }
+                    onChange={(e) => handleSelectRecipe(index, e.target.value)}
                     required
                   >
                     <option disabled value="" defaultValue="">
@@ -246,12 +254,13 @@ export default function NewMenu() {
                   </SelectField>
                 </div>
                 <div className="mt-0.5 self-start pt-6">
-                  <input type="hidden" name="removeIndex" value={index} />
+                  <input type="hidden" name="removeRecipe" value={index} />
                   <Button
                     type={hydrated ? "button" : "submit"}
                     size="sm"
                     name="action"
                     value="remove"
+                    disabled={recipeIds.length === 1}
                     onClick={() => handleRemoveRecipe(index)}
                   >
                     -
@@ -278,7 +287,7 @@ export default function NewMenu() {
           size="sm"
           name="action"
           value="save"
-          disabled={recipesId.length === 0}
+          disabled={recipeIds.length === 0}
           fill
         >
           save
@@ -287,7 +296,3 @@ export default function NewMenu() {
     </Form>
   );
 }
-
-// @TODO handle ingredient value selection
-// @TODO check the reason for the multiplies render
-// @TODO create a good error screen
