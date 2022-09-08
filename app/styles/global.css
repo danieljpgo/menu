@@ -1,0 +1,11 @@
+body {
+  -webkit-tap-highlight-color: transparent;
+}
+
+select {
+  -webkit-appearance: none;
+}
+
+input {
+  -webkit-appearance: none;
+}

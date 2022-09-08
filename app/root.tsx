@@ -10,15 +10,20 @@ import {
   useCatch,
 } from "@remix-run/react";
 import tailwindStylesheetUrl from "./styles/tailwind.css";
+import globalCSS from "./styles/global.css";
 import { getUser } from "./server/session.server";
 
 export const links: LinksFunction = () => {
-  return [{ rel: "stylesheet", href: tailwindStylesheetUrl }];
+  return [
+    { rel: "stylesheet", href: tailwindStylesheetUrl },
+    { rel: "stylesheet", href: globalCSS },
+  ];
 };
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
   viewport: "width=device-width,initial-scale=1",
+  "apple-mobile-web-app-status-bar-style": "black-translucent",
 });
 
 export async function loader({ request }: LoaderArgs) {
