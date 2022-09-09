@@ -9,3 +9,7 @@ select {
 input {
   -webkit-appearance: none;
 }
+
+@media screen and (display-mode: standalone) {
+  /* @TODO */
+}
