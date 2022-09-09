@@ -21,7 +21,7 @@ export default function RecipesLayout() {
 
   return (
     <>
-      <nav className="flex items-center bg-white shadow-sm">
+      <nav className="flex items-center bg-white shadow-sm standalone:fixed standalone:left-0 standalone:right-0 standalone:z-10">
         <div className="w-screen overflow-x-auto">
           <Shelf as="ol">
             {data.menus.length === 0 ? (
@@ -60,7 +60,7 @@ export default function RecipesLayout() {
           </Link>
         </div>
       </nav>
-      <div className="grid gap-4 px-6 py-4">
+      <div className="grid gap-4 px-6 py-4 standalone:pt-[72px]">
         <Heading as="h2" weight="semibold">
           Menu
         </Heading>
