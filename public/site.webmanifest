@@ -1,8 +1,9 @@
 {
+  "name": "Menu",
+  "short_name": "Menu",
   "display": "standalone",
   "theme_color": "#ffffff",
   "background_color": "#ffffff",
-  "short_name": "Menu",
   "icons": [
     {
       "src": "manifest-icon-192.maskable.png",
