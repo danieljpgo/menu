@@ -1,7 +1,7 @@
 import siteWebmanifest from "../public/site.webmanifest";
 
 export const pwaMetas = {
-  "apple-mobile-web-app-status-bar-style": "black-translucent",
+  "apple-mobile-web-app-status-bar-style": "default",
   "apple-mobile-web-app-capable": "yes",
 };
 
