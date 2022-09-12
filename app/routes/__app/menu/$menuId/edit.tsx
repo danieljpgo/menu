@@ -148,12 +148,15 @@ export default function NewMenu() {
   React.useEffect(() => {
     if (actionData?.fieldErrors.name) {
       nameRef.current?.focus();
-      nameRef.current?.scrollIntoView({ behavior: "smooth" });
+      nameRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
     if (actionData?.fieldErrors?.description) {
       descriptionRef.current?.focus();
-      descriptionRef.current?.scrollIntoView({ behavior: "smooth" });
+      descriptionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
       return;
     }
     if (actionData?.fieldErrors?.recipes && repetitiveRecipesIndex) {
@@ -167,7 +170,7 @@ export default function NewMenu() {
   React.useEffect(() => {
     if (nameRef.current) {
       nameRef.current?.focus();
-      nameRef.current?.scrollIntoView({ behavior: "smooth" });
+      nameRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
   }, []);
@@ -175,7 +178,9 @@ export default function NewMenu() {
   React.useEffect(() => {
     if (recipesRef.current.at(-1)?.value === "") {
       recipesRef.current.at(-1)?.focus();
-      recipesRef.current.at(-1)?.scrollIntoView({ behavior: "smooth" });
+      recipesRef.current
+        .at(-1)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
     if (recipesRef.current.includes(null)) {
