@@ -173,12 +173,6 @@ export default function NewMenu() {
   }, []);
 
   React.useEffect(() => {
-    // if (nameRef.current) {
-    //   // if (nameRef.current?.value === "" && selectedRecipes.length === 1) {
-    //   nameRef.current?.focus();
-    //   nameRef.current?.scrollIntoView({ behavior: "smooth" });
-    //   return;
-    // }
     if (recipesRef.current.at(-1)?.value === "") {
       recipesRef.current.at(-1)?.focus();
       recipesRef.current.at(-1)?.scrollIntoView({ behavior: "smooth" });
@@ -197,6 +191,7 @@ export default function NewMenu() {
 
   function handleRemoveRecipe(index: number) {
     if (!hydrated) return;
+    console.log(index);
     setSelectedRecipes((prev) => prev.filter((_, i) => index !== i));
   }
 
@@ -207,9 +202,10 @@ export default function NewMenu() {
     );
   }
 
-  const recipeIds = actionData?.fields.recipes
-    ? actionData?.fields.recipes
-    : selectedRecipes;
+  const recipeIds =
+    !hydrated && actionData?.fields.recipes
+      ? actionData?.fields.recipes
+      : selectedRecipes;
 
   return (
     <Form method="post">
@@ -226,19 +222,20 @@ export default function NewMenu() {
             ref={nameRef}
             hint={actionData?.fieldErrors.name?.[0]}
             status={actionData?.fieldErrors.name ? "error" : undefined}
-            defaultValue={data.menu.name}
-            // defaultValue={actionData?.fields.name?.toString()}
+            defaultValue={actionData?.fields.name?.toString() ?? data.menu.name}
             required
           />
           <TextField
             id="description"
             name="description"
             label="description"
-            defaultValue={data.menu.description}
             ref={descriptionRef}
             hint={actionData?.fieldErrors.description?.[0]}
             status={actionData?.fieldErrors.description ? "error" : undefined}
-            // defaultValue={actionData?.fields.description?.toString()}
+            defaultValue={
+              actionData?.fields.description?.toString() ??
+              data.menu.description
+            }
             required
           />
           <Heading as="h3" weight="medium">
@@ -252,7 +249,7 @@ export default function NewMenu() {
                     id={`recipe-${id}`}
                     name="recipe"
                     label="recipe"
-                    value={id}
+                    value={hydrated ? id : undefined}
                     status={
                       repetitiveRecipesIndex?.includes(index)
                         ? "error"
@@ -264,12 +261,11 @@ export default function NewMenu() {
                         ? actionData?.fieldErrors.recipes?.[0]?.toString()
                         : undefined
                     }
-                    defaultValue={id}
-                    // defaultValue={
-                    //   !hydrated
-                    //     ? actionData?.fields.recipes[index]?.toString()
-                    //     : undefined
-                    // }
+                    defaultValue={
+                      hydrated
+                        ? undefined
+                        : actionData?.fields.recipes[index]?.toString() ?? id
+                    }
                     onChange={(e) => handleSelectRecipe(index, e.target.value)}
                     required
                   >
@@ -326,76 +322,3 @@ export default function NewMenu() {
     </Form>
   );
 }
-
-/* <label className="leading-4" htmlFor="name">
-        name
-      </label>
-      <input
-        id="name"
-        name="name"
-        className="flex-1 px-3 text-lg border-2 border-blue-500 rounded-md"
-        // aria-invalid={actionData?.errors?.name ? true : undefined}
-        // aria-errormessage={
-        // actionData?.errors?.name ? "title-error" : undefined
-        // }
-      /> */
-
-/* <label className="leading-4" htmlFor="description">
-        description
-      </label>
-      <input
-        id="description"
-        name="description"
-        className="flex-1 px-3 text-lg border-2 border-blue-500 rounded-md"
-        // aria-invalid={actionData?.errors?.name ? true : undefined}
-        // aria-errormessage={
-        // actionData?.errors?.name ? "title-error" : undefined
-        // }
-      /> */
-
-/* <div>
-        <label className="flex flex-col w-full gap-1">
-          <span>Title: </span>
-          <input
-            ref={titleRef}
-            name="title"
-            className="flex-1 px-3 text-lg border-2 border-blue-500 rounded-md"
-            aria-invalid={actionData?.errors?.title ? true : undefined}
-            aria-errormessage={
-              actionData?.errors?.title ? "title-error" : undefined
-            }
-          />
-        </label>
-        {actionData?.errors?.title && (
-          <div className="pt-1 text-red-700" id="title-error">
-            {actionData.errors.title}
-          </div>
-        )}
-      </div>
-
-      <div>
-        <label className="flex flex-col w-full gap-1">
-          <span>Body: </span>
-          <textarea
-            ref={bodyRef}
-            name="body"
-            rows={8}
-            className="flex-1 w-full px-3 py-2 text-lg leading-6 border-2 border-blue-500 rounded-md"
-            aria-invalid={actionData?.errors?.body ? true : undefined}
-            aria-errormessage={
-              actionData?.errors?.body ? "body-error" : undefined
-            }
-          />
-        </label>
-        {actionData?.errors?.body && (
-          <div className="pt-1 text-red-700" id="body-error">
-            {actionData.errors.body}
-          </div>
-        )}
-      </div>
-*/
-// @TODO handle ingredient value selection
-// @TODO handle focus in better way
-// @TODO focus on input again when clicking add more
-// @TODO check the reason for the multiplies render
-// @TODO create a good error screen
