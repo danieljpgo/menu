@@ -1,10 +1,14 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from "@remix-run/node";
+import * as React from "react";
 import { json, redirect } from "@remix-run/node";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
+import { z } from "zod";
 import { portions } from "lib/ingredients";
 import { badRequest } from "lib/remix";
-import * as React from "react";
-import { z } from "zod";
+import { getIngredients } from "~/server/ingredient.server";
+import { createRecipe } from "~/server/recipe.server";
+import { requireUserId } from "~/server/session.server";
+import { useHydrated } from "~/hooks";
 import {
   Button,
   Heading,
@@ -15,10 +19,6 @@ import {
   Text,
   TextField,
 } from "~/components";
-import { useHydrated } from "~/hooks";
-import { getIngredients } from "~/server/ingredient.server";
-import { createRecipe } from "~/server/recipe.server";
-import { requireUserId } from "~/server/session.server";
 
 export const meta: MetaFunction = () => ({
   title: `Menu - Create Recipe`,
@@ -81,8 +81,6 @@ export async function action({ request }: ActionArgs) {
   });
 
   if (!validation.success) {
-    console.log(validation);
-
     return badRequest({
       formError: validation.error.formErrors.formErrors,
       fieldErrors: { ...validation.error.formErrors.fieldErrors },
@@ -158,19 +156,52 @@ export default function NewRecipe() {
     [actionData?.fields.ingredients]
   );
 
-  // console.log(ingredients);
-  // const actionData = useActionData<typeof action>();
+  React.useEffect(() => {
+    if (nameRef.current?.value === "") {
+      nameRef.current?.focus();
+      nameRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+  }, []);
 
-  // const titleRef = React.useRef<HTMLInputElement>(null);
-  // const bodyRef = React.useRef<HTMLTextAreaElement>(null);
+  React.useEffect(() => {
+    if (actionData?.fieldErrors.name) {
+      nameRef.current?.focus();
+      nameRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    if (actionData?.fieldErrors?.description) {
+      descriptionRef.current?.focus();
+      descriptionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+      return;
+    }
+    if (actionData?.fieldErrors?.ingredients && repetitiveIngredientsIndex) {
+      const index = repetitiveIngredientsIndex.filter((a) => a !== -1);
+      ingredientsRef.current[index[0]]?.focus();
+      ingredientsRef.current[index[0]]?.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+  }, [actionData, repetitiveIngredientsIndex]);
 
-  // React.useEffect(() => {
-  //   if (actionData?.errors?.title) {
-  //     titleRef.current?.focus();
-  //   } else if (actionData?.errors?.body) {
-  //     bodyRef.current?.focus();
-  //   }
-  // }, [actionData]);
+  React.useEffect(() => {
+    if (
+      selectedIngredients.length > 1 &&
+      ingredientsRef.current.at(-1)?.value === ""
+    ) {
+      ingredientsRef.current.at(-1)?.focus();
+      ingredientsRef.current
+        .at(-1)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    if (ingredientsRef.current.includes(null)) {
+      ingredientsRef.current = ingredientsRef.current.filter(Boolean);
+      return;
+    }
+  }, [selectedIngredients]);
 
   function handleAddIngredient() {
     if (!hydrated) return;
@@ -187,6 +218,10 @@ export default function NewRecipe() {
     setSelectedIngredients((prev) =>
       prev.map((data, i) => (i === index ? { ...data, id: selectedId } : data))
     );
+    setTimeout(() => {
+      amountRef.current.at(index)?.focus();
+      amountRef.current.at(index)?.scrollIntoView({ behavior: "smooth" });
+    }, 600);
   }
 
   function handleChangeAmount(index: number, amount: number) {
@@ -279,6 +314,7 @@ export default function NewRecipe() {
                     (ing) => ing.id === ingredients[index].id
                   )?.unit === "p" ? (
                     <SelectField
+                      key={`amount-${index}-select`}
                       id={`amount-${index}`}
                       name="amount"
                       label={`amount`}
@@ -308,6 +344,7 @@ export default function NewRecipe() {
                     </SelectField>
                   ) : (
                     <NumberField
+                      key={`amount-${index}-number`}
                       id={`amount-${index}`}
                       name="amount"
                       label="amount"
