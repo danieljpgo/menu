@@ -144,7 +144,7 @@ export default function NewRecipe() {
     Array<HTMLSelectElement | HTMLInputElement | null>
   >([]);
   const [selectedIngredients, setSelectedIngredients] = React.useState([
-    { id: "", amount: 0 },
+    { id: "", amount: "0" },
   ]);
   const hydrated = useHydrated();
 
@@ -205,7 +205,7 @@ export default function NewRecipe() {
 
   function handleAddIngredient() {
     if (!hydrated) return;
-    setSelectedIngredients((prev) => [...prev, { id: "", amount: 0 }]);
+    setSelectedIngredients((prev) => [...prev, { id: "", amount: "0" }]);
   }
 
   function handleRemoveIngredient(index: number) {
@@ -224,7 +224,7 @@ export default function NewRecipe() {
     }, 600);
   }
 
-  function handleChangeAmount(index: number, amount: number) {
+  function handleChangeAmount(index: number, amount: string) {
     if (!hydrated) return;
     setSelectedIngredients((prev) =>
       prev.map((data, i) => (i === index ? { ...data, amount } : data))
@@ -235,8 +235,8 @@ export default function NewRecipe() {
     ? selectedIngredients
     : actionData?.fields.ingredients.map((id, i) => ({
         id,
-        amount: actionData?.fields.amounts[i],
-      })) ?? [{ id: "", amount: 0 }];
+        amount: String(actionData?.fields.amounts[i]),
+      })) ?? [{ id: "", amount: "0" }];
 
   return (
     <Form method="post">
@@ -321,7 +321,7 @@ export default function NewRecipe() {
                       value={ingredient.amount}
                       ref={(node) => (amountRef.current[index] = node)}
                       onChange={(e) =>
-                        handleChangeAmount(index, Number(e.target.value))
+                        handleChangeAmount(index, e.target.value)
                       }
                       defaultValue={
                         !hydrated
@@ -351,7 +351,7 @@ export default function NewRecipe() {
                       value={ingredient.amount}
                       ref={(node) => (amountRef.current[index] = node)}
                       onChange={(e) =>
-                        handleChangeAmount(index, Number(e.target.value))
+                        handleChangeAmount(index, e.target.value)
                       }
                       defaultValue={
                         !hydrated
@@ -406,102 +406,3 @@ export default function NewRecipe() {
     </Form>
   );
 }
-
-/* <div>
-        <label className="flex flex-col w-full gap-1">
-          <span>Title: </span>
-          <input
-            ref={titleRef}
-            name="title"
-            className="flex-1 px-3 text-lg border-2 border-blue-500 rounded-md"
-            aria-invalid={actionData?.errors?.title ? true : undefined}
-            aria-errormessage={
-              actionData?.errors?.title ? "title-error" : undefined
-            }
-          />
-        </label>
-        {actionData?.errors?.title && (
-          <div className="pt-1 text-red-700" id="title-error">
-            {actionData.errors.title}
-          </div>
-        )}
-      </div>
-
-      <div>
-        <label className="flex flex-col w-full gap-1">
-          <span>Body: </span>
-          <textarea
-            ref={bodyRef}
-            name="body"
-            rows={8}
-            className="flex-1 w-full px-3 py-2 text-lg leading-6 border-2 border-blue-500 rounded-md"
-            aria-invalid={actionData?.errors?.body ? true : undefined}
-            aria-errormessage={
-              actionData?.errors?.body ? "body-error" : undefined
-            }
-          />
-        </label>
-        {actionData?.errors?.body && (
-          <div className="pt-1 text-red-700" id="body-error">
-            {actionData.errors.body}
-          </div>
-        )}
-      </div>
-*/
-
-/* <label className="leading-4" htmlFor="name">
-        name
-      </label>
-      <input
-        id="name"
-        name="name"
-        className="flex-1 px-3 text-lg border-2 border-blue-500 rounded-md"
-        // aria-invalid={actionData?.errors?.name ? true : undefined}
-        // aria-errormessage={
-        // actionData?.errors?.name ? "title-error" : undefined
-        // }
-      /> */
-
-/* <label className="leading-4" htmlFor="description">
-        description
-      </label>
-      <input
-        id="description"
-        name="description"
-        className="flex-1 px-3 text-lg border-2 border-blue-500 rounded-md"
-        // aria-invalid={actionData?.errors?.name ? true : undefined}
-        // aria-errormessage={
-        // actionData?.errors?.name ? "title-error" : undefined
-        // }
-      /> */
-
-/* <label className="leading-4" htmlFor={`ingredient-${number}`}>
-        ingredient
-      </label>
-      <select name="ingredient" id={`ingredient-${number}`}>
-        {data.ingredients.map((ingredient) => (
-          <option key={ingredient.id} value={ingredient.id}>
-            {ingredient.name} - {ingredient.unit}
-          </option>
-        ))}
-      </select> */
-
-/* <label className="leading-4" htmlFor={`amount-${number}`}>
-        amount
-      </label>
-      <input
-        id={`amount-${number}`}
-        name="amount"
-        className="flex-1 px-3 text-lg border-2 border-blue-500 rounded-md"
-        // aria-invalid={actionData?.errors?.name ? true : undefined}
-        // aria-errormessage={
-        // actionData?.errors?.name ? "title-error" : undefined
-        // }
-      /> */
-
-// @TODO handle ingredient value selection
-// @TODO handle focus in better way
-// @TODO focus on input again when clicking add more
-// @TODO check the reason for the multiplies render
-// @TODO create a good error screen
-// @TODO repetitive ingredients

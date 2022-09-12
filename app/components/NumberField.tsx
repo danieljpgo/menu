@@ -5,7 +5,7 @@ type NumberFieldProps = {
   id: string;
   label: string;
   name: string;
-  value?: number;
+  value?: number | string;
   defaultValue?: number;
   disabled?: boolean;
   pattern?: string;
