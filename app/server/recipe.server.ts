@@ -100,15 +100,13 @@ export async function updateRecipe(
   });
 }
 
-export function createRecipe(
-  { userId }: { userId: string },
-  form: {
-    name: string;
-    description: string;
-    ingredients: Array<string>;
-    amounts: Array<number>;
-  }
-) {
+export function createRecipe(form: {
+  userId: string;
+  name: string;
+  description: string;
+  ingredients: Array<string>;
+  amounts: Array<number>;
+}) {
   return prisma.recipe.create({
     data: {
       name: form.name,
@@ -119,7 +117,7 @@ export function createRecipe(
           ingredient: { connect: { id: ingredient } },
         })),
       },
-      user: { connect: { id: userId } },
+      user: { connect: { id: form.userId } },
     },
   });
 }

@@ -106,7 +106,7 @@ export async function action({ request }: ActionArgs) {
     return redirect(`/menu/${menu.id}`);
   }
 
-  return redirect("/menu/");
+  return redirect("/menu");
 }
 
 export default function NewMenu() {

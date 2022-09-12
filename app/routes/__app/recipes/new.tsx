@@ -1,7 +1,8 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Form, useLoaderData } from "@remix-run/react";
+import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { portions } from "lib/ingredients";
+import { badRequest } from "lib/remix";
 import * as React from "react";
 import { z } from "zod";
 import {
@@ -14,6 +15,7 @@ import {
   Text,
   TextField,
 } from "~/components";
+import { useHydrated } from "~/hooks";
 import { getIngredients } from "~/server/ingredient.server";
 import { createRecipe } from "~/server/recipe.server";
 import { requireUserId } from "~/server/session.server";
@@ -22,20 +24,43 @@ export const meta: MetaFunction = () => ({
   title: `Menu - Create Recipe`,
 });
 
-const schema = z.object({
-  name: z.string(),
-  description: z.string(),
-  amounts: z.array(
-    z
-      .string()
-      .transform((val) => Number(val))
-      .refine((val) => !Number.isNaN(val), {
-        message: "Expected number, received string",
-      })
-    // @TODO create a abstraction
-  ),
-  ingredients: z.array(z.string()),
-});
+const schema = z.union([
+  z.object({
+    action: z.union([z.literal("add"), z.literal("remove")]),
+    name: z.string().optional(),
+    description: z.string().optional(),
+    amounts: z.array(
+      z
+        .string()
+        .transform((val) => Number(val))
+        .refine((val) => !Number.isNaN(val), {
+          message: "Expected number, received string",
+        })
+    ),
+    ingredients: z.array(z.string()),
+    removeIngredient: z.string().transform((val) => Number(val)),
+  }),
+  z.object({
+    action: z.literal("save"),
+    name: z.string().min(3, "Should be at least 3 characters"),
+    description: z.string().min(10, "Should be at least 10 characters"),
+    amounts: z.array(
+      z
+        .string()
+        .transform((val) => Number(val))
+        .refine((val) => !Number.isNaN(val), {
+          message: "Expected number, received string",
+        })
+    ),
+    ingredients: z
+      .array(z.string({ required_error: "Select a ingredient" }))
+      .min(1, "Should be at least 1 ingredient")
+      .refine((array) => !array.some((e, i, a) => a.indexOf(e) !== i), {
+        message: "Should not repeat the ingredients",
+      }),
+    removeIngredient: z.string().transform((val) => Number(val)),
+  }),
+]);
 
 export async function loader({ request }: LoaderArgs) {
   await requireUserId(request);
@@ -51,18 +76,87 @@ export async function action({ request }: ActionArgs) {
     description: formData.get("description"),
     ingredients: formData.getAll("ingredient"),
     amounts: formData.getAll("amount"),
+    action: formData.get("action"),
+    removeIngredient: formData.get("removeIngredient"),
   });
+
   if (!validation.success) {
-    return json({ errors: { name: null, body: null } }, { status: 400 }); // @TODO better error handler
+    console.log(validation);
+
+    return badRequest({
+      formError: validation.error.formErrors.formErrors,
+      fieldErrors: { ...validation.error.formErrors.fieldErrors },
+      fields: {
+        name: formData.get("name"),
+        description: formData.get("description"),
+        ingredients: formData.getAll("ingredient").map(String),
+        amounts: formData.getAll("amount").map(Number),
+      },
+    });
   }
-  const recipe = await createRecipe({ userId }, validation.data);
-  return redirect(`/recipes/${recipe.id}`);
+  const form = validation.data;
+  if (form.action === "add") {
+    return json({
+      formError: [],
+      fieldErrors: {
+        name: null,
+        description: null,
+        ingredients: [null],
+        amounts: [null],
+      },
+      fields: {
+        ...form,
+        ingredients: [...form.ingredients, ""],
+        amounts: [...form.amounts, 0],
+      },
+    });
+  }
+  if (form.action === "remove") {
+    return json({
+      formError: [],
+      fieldErrors: {
+        name: null,
+        description: null,
+        ingredients: [null],
+        amounts: [null],
+      },
+      fields: {
+        ...form,
+        ingredients: form.ingredients.filter(
+          (_, i) => form.removeIngredient !== i
+        ),
+        amounts: form.amounts.filter((_, i) => form.removeIngredient !== i),
+      },
+    });
+  }
+  if (form.action === "save") {
+    const recipe = await createRecipe({ ...form, userId });
+    return redirect(`/recipes/${recipe.id}`);
+  }
+  return redirect("/recipes");
 }
 
 export default function NewRecipe() {
-  // const [ingredients, setIngredients] = React.useState<Array<string>>([]);
-  const [ingredientsId, setIngredientsId] = React.useState<Array<string>>([""]);
   const data = useLoaderData<typeof loader>();
+  const actionData = useActionData<typeof action>();
+  const nameRef = React.useRef<HTMLInputElement>(null);
+  const descriptionRef = React.useRef<HTMLInputElement>(null);
+  const ingredientsRef = React.useRef<Array<HTMLSelectElement | null>>([]);
+  const amountRef = React.useRef<
+    Array<HTMLSelectElement | HTMLInputElement | null>
+  >([]);
+  const [selectedIngredients, setSelectedIngredients] = React.useState([
+    { id: "", amount: 0 },
+  ]);
+  const hydrated = useHydrated();
+
+  const repetitiveIngredientsIndex = React.useMemo(
+    () =>
+      actionData?.fields.ingredients.map((ingredient, i, arr) =>
+        ingredient ? (arr.indexOf(ingredient) !== i ? i : -1) : -1
+      ),
+    [actionData?.fields.ingredients]
+  );
 
   // console.log(ingredients);
   // const actionData = useActionData<typeof action>();
@@ -78,6 +172,37 @@ export default function NewRecipe() {
   //   }
   // }, [actionData]);
 
+  function handleAddIngredient() {
+    if (!hydrated) return;
+    setSelectedIngredients((prev) => [...prev, { id: "", amount: 0 }]);
+  }
+
+  function handleRemoveIngredient(index: number) {
+    if (!hydrated) return;
+    setSelectedIngredients((prev) => prev.filter((_, i) => index !== i));
+  }
+
+  function handleSelectIngredient(index: number, selectedId: string) {
+    if (!hydrated) return;
+    setSelectedIngredients((prev) =>
+      prev.map((data, i) => (i === index ? { ...data, id: selectedId } : data))
+    );
+  }
+
+  function handleChangeAmount(index: number, amount: number) {
+    if (!hydrated) return;
+    setSelectedIngredients((prev) =>
+      prev.map((data, i) => (i === index ? { ...data, amount } : data))
+    );
+  }
+
+  const ingredients = hydrated
+    ? selectedIngredients
+    : actionData?.fields.ingredients.map((id, i) => ({
+        id,
+        amount: actionData?.fields.amounts[i],
+      })) ?? [{ id: "", amount: 0 }];
+
   return (
     <Form method="post">
       <div className="pb-32">
@@ -86,27 +211,62 @@ export default function NewRecipe() {
           <Heading as="h3" weight="medium">
             Details
           </Heading>
-          <TextField id="name" name="name" label="name" />
-          <TextField id="description" name="description" label="description" />
+          <TextField
+            id="name"
+            name="name"
+            label="name"
+            ref={nameRef}
+            hint={actionData?.fieldErrors.name?.[0]}
+            status={actionData?.fieldErrors.name ? "error" : undefined}
+            defaultValue={actionData?.fields.name?.toString()}
+            required
+          />
+          <TextField
+            id="description"
+            name="description"
+            label="description"
+            ref={descriptionRef}
+            hint={actionData?.fieldErrors.description?.[0]}
+            status={actionData?.fieldErrors.description ? "error" : undefined}
+            defaultValue={actionData?.fields.description?.toString()}
+            required
+          />
           <Heading as="h3" weight="medium">
             Ingredient
           </Heading>
           <Stack as="ol" gap="md">
-            {ingredientsId.map((id, index) => (
-              <Shelf as="li" gap="md" key={index}>
+            {ingredients.map((ingredient, index) => (
+              <Shelf as="li" gap="md" key={`${index}`}>
                 <div className="w-full">
                   <SelectField
-                    id={`ingredient-${index}`}
+                    id={`ingredient-${ingredient.id}`}
+                    label="ingredient"
                     name="ingredient"
-                    label={`ingredient`}
-                    onChange={(e) =>
-                      setIngredientsId((prev) =>
-                        prev.map((data, i) =>
-                          i === index ? e.target.value : data
-                        )
-                      )
+                    value={ingredient.id}
+                    status={
+                      repetitiveIngredientsIndex?.includes(index)
+                        ? "error"
+                        : undefined
                     }
+                    ref={(node) => (ingredientsRef.current[index] = node)}
+                    hint={
+                      repetitiveIngredientsIndex?.includes(index)
+                        ? actionData?.fieldErrors.ingredients?.[0]?.toString()
+                        : undefined
+                    }
+                    defaultValue={
+                      !hydrated
+                        ? actionData?.fields.ingredients[index]
+                        : undefined
+                    }
+                    onChange={(e) =>
+                      handleSelectIngredient(index, e.target.value)
+                    }
+                    required
                   >
+                    <option disabled value="" defaultValue="">
+                      Choose a ingredient
+                    </option>
                     {data.ingredients.map((ingredient) => (
                       <option key={ingredient.id} value={ingredient.id}>
                         {ingredient.name} - {ingredient.unit}
@@ -114,14 +274,29 @@ export default function NewRecipe() {
                     ))}
                   </SelectField>
                 </div>
-                <div className="w-1/4">
-                  {data.ingredients.find((a) => a.id === ingredientsId[index])
-                    ?.unit === "p" ? (
+                <div className="w-28">
+                  {data.ingredients.find(
+                    (ing) => ing.id === ingredients[index].id
+                  )?.unit === "p" ? (
                     <SelectField
                       id={`amount-${index}`}
                       name="amount"
                       label={`amount`}
+                      value={ingredient.amount}
+                      ref={(node) => (amountRef.current[index] = node)}
+                      onChange={(e) =>
+                        handleChangeAmount(index, Number(e.target.value))
+                      }
+                      defaultValue={
+                        !hydrated
+                          ? actionData?.fields.amounts[index]
+                          : undefined
+                      }
+                      required
                     >
+                      <option disabled value={0} defaultValue={0}>
+                        0
+                      </option>
                       {portions.map((sizes) => (
                         <option
                           key={`amount-${index}-${sizes.label}`}
@@ -135,19 +310,30 @@ export default function NewRecipe() {
                     <NumberField
                       id={`amount-${index}`}
                       name="amount"
-                      label={`amount`}
+                      label="amount"
+                      value={ingredient.amount}
+                      ref={(node) => (amountRef.current[index] = node)}
+                      onChange={(e) =>
+                        handleChangeAmount(index, Number(e.target.value))
+                      }
+                      defaultValue={
+                        !hydrated
+                          ? actionData?.fields.amounts[index]
+                          : undefined
+                      }
+                      required
                     />
                   )}
                 </div>
-                <div className="self-center pt-6">
+                <div className="mt-0.5 self-start pt-6">
+                  <input type="hidden" name="removeIngredient" value={index} />
                   <Button
-                    type="button"
+                    type={hydrated ? "button" : "submit"}
                     size="sm"
-                    onClick={() =>
-                      setIngredientsId((prev) =>
-                        prev.filter((_, i) => index !== i)
-                      )
-                    }
+                    name="action"
+                    value="remove"
+                    disabled={ingredients.length === 1}
+                    onClick={() => handleRemoveIngredient(index)}
                   >
                     -
                   </Button>
@@ -157,13 +343,14 @@ export default function NewRecipe() {
           </Stack>
         </Stack>
       </div>
-
       <div className="fixed bottom-0 left-0 right-0 grid gap-4 px-6 pb-4 bg-white">
         <hr className="pb-0.5" />
         <Button
-          type="button"
+          type={hydrated ? "button" : "submit"}
           size="sm"
-          onClick={() => setIngredientsId((prev) => [...prev, ""])}
+          name="action"
+          value="add"
+          onClick={handleAddIngredient}
           fill
         >
           +
@@ -171,7 +358,9 @@ export default function NewRecipe() {
         <Button
           type="submit"
           size="sm"
-          disabled={ingredientsId.length === 0}
+          name="action"
+          value="save"
+          disabled={ingredients.length === 0}
           fill
         >
           save
