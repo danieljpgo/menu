@@ -22,7 +22,7 @@ export const meta: MetaFunction = ({
 }: {
   data: { menu: { name: string } };
 }) => ({
-  title: data?.menu ? `Menu - ${data.menu.name} - Edit` : "Menu - Not found",
+  title: data?.menu ? `Menu - Edit ${data.menu.name}` : "Menu - Not found",
 });
 
 const loaderSchema = z.object({

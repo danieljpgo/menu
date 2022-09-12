@@ -18,7 +18,7 @@ import {
 } from "~/components";
 
 export const meta: MetaFunction = () => ({
-  title: `Menu - New`,
+  title: `Menu - Create Menu`,
 });
 
 const schema = z.union([
