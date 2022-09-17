@@ -107,7 +107,7 @@ export async function createShop(form: { userId: string; menus: string[] }) {
   return shop;
 }
 
-export async function updateShop(form: { menusId: string[]; shopId: string }) {
+export async function updateShop(form: { menus: string[]; shopId: string }) {
   const shop = await prisma.shop.findUnique({
     where: { id: form.shopId },
     include: {
@@ -133,12 +133,12 @@ export async function updateShop(form: { menusId: string[]; shopId: string }) {
   }
 
   const disconnectMenus = shop.menus.filter(
-    (menu) => !form.menusId.some((id) => id === menu.id)
+    (menu) => !form.menus.some((id) => id === menu.id)
   );
   const unchangedMenus = shop.menus.filter((menu) =>
-    form.menusId.some((id) => id === menu.id)
+    form.menus.some((id) => id === menu.id)
   );
-  const connectMenus = form.menusId.filter(
+  const connectMenus = form.menus.filter(
     (id) => !shop.menus.some((menu) => menu.id === id)
   );
   const newMenusId = [...unchangedMenus.map(({ id }) => id), ...connectMenus];

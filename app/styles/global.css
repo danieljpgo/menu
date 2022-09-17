@@ -6,7 +6,7 @@ select {
   -webkit-appearance: none;
 }
 
-input {
+input[type="text"] {
   -webkit-appearance: none;
 }
 
