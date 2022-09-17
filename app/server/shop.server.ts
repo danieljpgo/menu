@@ -63,10 +63,7 @@ export async function getShopPurchasesWithTotalValues({
   return { ...shop, purchases };
 }
 
-export async function createShop(
-  { userId }: { userId: string },
-  form: { menus: string[] }
-) {
+export async function createShop(form: { userId: string; menus: string[] }) {
   const menus = await prisma.menu.findMany({
     where: { id: { in: form.menus } },
     select: {
@@ -103,7 +100,7 @@ export async function createShop(
         })),
       },
       menus: { connect: form.menus.map((id) => ({ id })) },
-      user: { connect: { id: userId } },
+      user: { connect: { id: form.userId } },
     },
   });
 
