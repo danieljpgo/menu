@@ -1,10 +1,11 @@
 import * as React from "react";
-import { Input, Label } from "~/components";
+import { Input, Label, Hint } from "~/components";
 
 type TextFieldProps = {
   id: string;
   label: string;
   name: string;
+  hint?: string;
   value?: string;
   defaultValue?: string;
   disabled?: boolean;
@@ -14,8 +15,17 @@ type TextFieldProps = {
 
 const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(
   function TextField(props, ref) {
-    const { id, label, name, disabled, required, value, defaultValue, status } =
-      props;
+    const {
+      id,
+      hint,
+      label,
+      name,
+      disabled,
+      required,
+      value,
+      defaultValue,
+      status,
+    } = props;
 
     return (
       <div>
@@ -36,10 +46,27 @@ const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(
           defaultValue={defaultValue}
           required={required}
           disabled={disabled}
+          aria-invalid={Boolean(hint && status === "error")}
+          aria-errormessage={
+            hint && status === "error"
+              ? `${id}-hint-${status ?? ""}`
+              : undefined
+          }
         />
+        {hint && (
+          <Hint
+            id={`${id}-hint-${status ?? ""}`}
+            status={status}
+            disabled={disabled}
+          >
+            {hint}
+          </Hint>
+        )}
       </div>
     );
   }
 );
 
 export default TextField;
+
+// @TODO: Add animations for hint

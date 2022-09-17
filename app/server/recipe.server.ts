@@ -42,16 +42,14 @@ export function deteleRecipe(id: string) {
   });
 }
 
-export async function updateRecipe(
-  { userId }: { userId: string },
-  form: {
-    recipeId: string;
-    name: string;
-    description: string;
-    ingredients: Array<string>;
-    amounts: Array<number>;
-  }
-) {
+export async function updateRecipe(form: {
+  userId: string;
+  recipeId: string;
+  name: string;
+  description: string;
+  ingredients: Array<string>;
+  amounts: Array<number>;
+}) {
   const recipe = await getRecipe(form.recipeId);
   if (!recipe) return recipe;
   const deleteIngredient = recipe.ingredients.filter(
@@ -95,20 +93,18 @@ export async function updateRecipe(
           id: ingredient.id,
         })),
       },
-      user: { connect: { id: userId } },
+      user: { connect: { id: form.userId } },
     },
   });
 }
 
-export function createRecipe(
-  { userId }: { userId: string },
-  form: {
-    name: string;
-    description: string;
-    ingredients: Array<string>;
-    amounts: Array<number>;
-  }
-) {
+export function createRecipe(form: {
+  userId: string;
+  name: string;
+  description: string;
+  ingredients: Array<string>;
+  amounts: Array<number>;
+}) {
   return prisma.recipe.create({
     data: {
       name: form.name,
@@ -119,7 +115,7 @@ export function createRecipe(
           ingredient: { connect: { id: ingredient } },
         })),
       },
-      user: { connect: { id: userId } },
+      user: { connect: { id: form.userId } },
     },
   });
 }

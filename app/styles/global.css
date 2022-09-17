@@ -1,0 +1,32 @@
+body {
+  -webkit-tap-highlight-color: transparent;
+}
+
+select {
+  -webkit-appearance: none;
+}
+
+input[type="text"] {
+  -webkit-appearance: none;
+}
+
+/* @media screen and (display-mode: standalone) {
+}
+header {
+  padding-top: env(safe-area-inset-top);
+}
+ */
+/* // tailwind.config.js
+ module.exports = {
+   theme: {
+     extend: {
+       spacing: {
+         "safe-top": "env(safe-area-inset-top)",
+         "safe-bottom": "env(safe-area-inset-bottom)",
+         "safe-left": "env(safe-area-inset-left)",
+         "safe-right": "env(safe-area-inset-right)",
+       },
+     },
+   },
+ };
+  */

@@ -7,11 +7,8 @@ export default function Index() {
 
   return (
     <>
-      <header className="relative bg-white shadow-sm">
-        <div
-          className="container flex items-center justify-between px-6 py-4 mx-auto"
-          style={{ minHeight: 72 }}
-        >
+      <header className="relative bg-white shadow-sm standalone:fixed standalone:left-0 standalone:right-0 standalone:z-20">
+        <div className="container mx-auto flex min-h-[72px] items-center justify-between px-6 py-4">
           <h1>
             <Link
               to="/"
@@ -58,7 +55,7 @@ export default function Index() {
           </nav>
         </div>
       </header>
-      <main className="container h-full mx-auto">
+      <main className="container mx-auto h-full standalone:pt-[72px]">
         <Outlet />
       </main>
     </>

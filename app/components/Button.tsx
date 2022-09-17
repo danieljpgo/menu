@@ -38,7 +38,14 @@ export default function Button(props: ButtonProps) {
       type={type}
       disabled={disabled || loading}
       className={`
-        transform rounded-lg bg-gray-800 px-4 py-2 tracking-wide text-white transition-colors duration-200 hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-800 disabled:cursor-not-allowed disabled:bg-opacity-70
+      transform rounded-lg bg-gray-800 px-4 py-2 tracking-wide text-white outline-none transition-colors duration-200 
+      hover:bg-gray-700
+      focus:border-blue-400 focus:bg-gray-700 focus:ring focus:ring-blue-300
+      focus:ring-opacity-40 focus-visible:border-blue-400 focus-visible:ring focus-visible:ring-blue-300 
+      focus-visible:ring-opacity-40  active:bg-gray-800 disabled:cursor-not-allowed disabled:bg-opacity-70
+
+      
+
         ${sizes[size]}
         ${fill ? "w-full" : ""}
     `}

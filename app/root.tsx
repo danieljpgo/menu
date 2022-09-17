@@ -9,16 +9,24 @@ import {
   ScrollRestoration,
   useCatch,
 } from "@remix-run/react";
-import tailwindStylesheetUrl from "./styles/tailwind.css";
+import { pwaLinks, pwaMetas } from "../lib/pwa";
 import { getUser } from "./server/session.server";
+import tailwindCSS from "./styles/tailwind.css";
+import globalCSS from "./styles/global.css";
 
 export const links: LinksFunction = () => {
-  return [{ rel: "stylesheet", href: tailwindStylesheetUrl }];
+  return [
+    { rel: "stylesheet", href: tailwindCSS },
+    { rel: "stylesheet", href: globalCSS },
+    ...pwaLinks,
+  ];
 };
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
-  viewport: "width=device-width,initial-scale=1",
+  viewport: "width=device-width,initial-scale=1,user-scalable=no",
+  "theme-color": "#ffffff",
+  ...pwaMetas,
 });
 
 export async function loader({ request }: LoaderArgs) {
@@ -40,13 +48,13 @@ type DocumentProps = {
   title?: string;
 };
 function Document(props: DocumentProps) {
-  const { children, title = "Untitled" } = props;
+  const { children, title } = props;
 
   return (
     <html lang="en" className="h-full">
       <head>
         <Meta />
-        <title>{title}</title>
+        {title && <title>{title}</title>}
         <Links />
       </head>
       <body className="flex flex-col h-full">

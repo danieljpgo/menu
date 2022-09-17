@@ -55,12 +55,13 @@ export function deleteMenu(id: string) {
   });
 }
 
-export async function updateMenu(
-  id: string,
-  form: { recipes: Array<string>; name: string; description: string }
-) {
-  const menu = await getMenu(id);
-
+export async function updateMenu(form: {
+  recipes: Array<string>;
+  name: string;
+  description: string;
+  menuId: string;
+}) {
+  const menu = await getMenu(form.menuId);
   if (!menu) return menu;
 
   const disconnectRecipes = menu.recipes.filter(
@@ -71,7 +72,7 @@ export async function updateMenu(
   );
 
   const newMenu = await prisma.menu.update({
-    where: { id },
+    where: { id: form.menuId },
     data: {
       name: form.name,
       description: form.description,

@@ -1,10 +1,12 @@
 import * as React from "react";
-import { Label, Select } from "~/components";
+import { Label, Select, Hint } from "~/components";
 
 type SelectFieldProps = {
   id: string;
   label: string;
   name: string;
+  hint?: string;
+  status?: "error";
   value?: React.SelectHTMLAttributes<HTMLSelectElement>["value"];
   defaultValue?: React.SelectHTMLAttributes<HTMLSelectElement>["value"];
   disabled?: boolean;
@@ -17,10 +19,12 @@ const SelectField = React.forwardRef<HTMLSelectElement, SelectFieldProps>(
   function SelectField(props, ref) {
     const {
       children,
+      hint,
       id,
       label,
       name,
       disabled,
+      status,
       required = false,
       value,
       defaultValue,
@@ -29,7 +33,12 @@ const SelectField = React.forwardRef<HTMLSelectElement, SelectFieldProps>(
 
     return (
       <div>
-        <Label disabled={disabled} htmlFor={id}>
+        <Label
+          disabled={disabled}
+          htmlFor={id}
+          required={required}
+          status={status}
+        >
           {label}
         </Label>
         <Select
@@ -41,9 +50,24 @@ const SelectField = React.forwardRef<HTMLSelectElement, SelectFieldProps>(
           required={required}
           disabled={disabled}
           onChange={onChange}
+          aria-invalid={Boolean(hint && status === "error")}
+          aria-errormessage={
+            hint && status === "error"
+              ? `${id}-hint-${status ?? ""}`
+              : undefined
+          }
         >
           {children}
         </Select>
+        {hint && (
+          <Hint
+            id={`${id}-hint-${status ?? ""}`}
+            status={status}
+            disabled={disabled}
+          >
+            {hint}
+          </Hint>
+        )}
       </div>
     );
   }

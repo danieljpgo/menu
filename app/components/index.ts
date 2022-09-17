@@ -7,6 +7,7 @@ export { default as Text } from "./Text";
 export { default as Heading } from "./Heading";
 export { default as NavLink } from "./NavLink";
 export { default as Label } from "./Label";
+export { default as Hint } from "./Hint";
 export { default as Input } from "./Input";
 export { default as Select } from "./Select";
 export { default as TextField } from "./TextField";
