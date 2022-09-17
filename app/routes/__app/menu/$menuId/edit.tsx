@@ -196,7 +196,6 @@ export default function NewMenu() {
 
   function handleRemoveRecipe(index: number) {
     if (!hydrated) return;
-    console.log(index);
     setSelectedRecipes((prev) => prev.filter((_, i) => index !== i));
   }
 
