@@ -260,6 +260,41 @@ const ingredients = [
     name: "Requeijão",
     unit: "g",
   },
+  {
+    id: "52",
+    name: "Fermento Biologico - Seco",
+    unit: "g",
+  },
+  {
+    id: "53",
+    name: "Fermento Químico",
+    unit: "g",
+  },
+  {
+    id: "54",
+    name: "Água",
+    unit: "ml",
+  },
+  {
+    id: "55",
+    name: "Sal",
+    unit: "g",
+  },
+  {
+    id: "56",
+    name: "Canela - Pó",
+    unit: "g",
+  },
+  {
+    id: "57",
+    name: "Canela",
+    unit: "p",
+  },
+  {
+    id: "58",
+    name: "Baunilha - Extrato",
+    unit: "ml",
+  },
 ];
 
 const prisma = new PrismaClient();
