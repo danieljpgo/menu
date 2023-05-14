@@ -45,7 +45,7 @@
 
 ## Project
 
-This project was made to learn more deeply the features that Remix, that Remix delivers, such as:
+This project was made to [continue learning about Remix](https://github.com/danieljpgo/learn-remix), further exploring key features and differences, such as:
 
 - Nested Routing
 - Optimistic UI
