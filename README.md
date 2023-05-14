@@ -50,6 +50,7 @@ This project was made to [continue learning about Remix](https://github.com/dani
 - Nested Routing
 - Optimistic UI
 - Progressive Enhancement
+- Easy PWA
 
 > Note: This project has several libraries and implementations that came with the starter [Remix Indie Stack](https://github.com/remix-run/indie-stack)
 
