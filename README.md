@@ -1,4 +1,115 @@
-# Remix Indie Stack
+<div align="center">
+    <img
+      alt="next.js"
+      title="next.js"
+      src=".github/logo.png"
+      width="150px" />
+</div>
+
+<h1 align="left">Menu</h1>
+
+<p align="left">
+   <a href="https://github.com/danieljpgo">
+      <img
+        alt="author"
+        src="https://img.shields.io/badge/author-danieljpgo-ffffff?labelColor=000000"
+      />
+   </a>
+   <img
+      alt="languages"
+      src="https://img.shields.io/github/languages/count/danieljpgo/menu?color=ffffff&labelColor=000000"
+   />
+   <a href="https://github.com/danieljpgo/menu/graphs/contributors">
+      <img
+        alt="contributors"
+        src="https://img.shields.io/github/stars/danieljpgo/menu?color=ffffff&labelColor=000000"/>
+   </a>
+    <a href="https://github.com/danieljpgo/menu/network/members">
+      <img
+         alt="forks"
+         src="https://img.shields.io/github/forks/danieljpgo/menu?color=ffffff&labelColor=000000"/>
+   </a>
+   <img alt="license" src="https://img.shields.io/badge/license-MIT-ffffff?labelColor=000000">
+</p>
+
+> grocery shopping made easy 🛒
+
+&nbsp;
+
+<p align="center">
+   <a href="#project">Project</a>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+   <a href="#demo">Demo</a>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+   <a href="#technologies">Technologies</a>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+   <a href="#license">License</a>
+</p>
+
+## Project
+
+This project was made to learn more deeply the features that Remix, that Remix delivers, such as:
+
+- Nested Routing
+- Optimistic UI
+- Progressive Enhancement
+
+> Note: This project has several libraries and implementations that came with the starter [Remix Indie Stack](https://github.com/remix-run/indie-stack)
+
+## Demo
+
+A demo a progressive enhancement experience.
+
+> JavaScript disabled and the application continues to work, with error handling, etc., just losing enhancements such as focus management and client-side navigation.
+
+&nbsp;
+
+<div align="center">
+    <img
+      alt="next.js"
+      title="next.js"
+      src=".github/demo.gif"
+      width="600px" />
+</div>
+
+## Technologies
+
+The main technologies used to develop the project were:
+
+- [React](https://reactjs.org/)
+- [Remix](https://remix.run/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Zod](https://zod.dev/)
+- [Prisma](https://www.prisma.io/)
+- [Tailwindcss](https://tailwindcss.com/)
+
+This project was bootstrapped with:
+
+- [Remix Indie Stack](https://github.com/remix-run/indie-stack)
+
+<!-- ## Getting Started
+First of all, you may clone this project:
+
+```
+git clone https://github.com/danieljpgo/learn-next.git
+```
+
+Run the following scripts in order to execute the application:
+
+```
+// install dependencies
+npm install
+
+// start the application
+npm run dev
+``` -->
+
+## License
+
+This project is under the [MIT license](https://github.com/danieljpgo/learn-next/blob/master/LICENSE).
+
+<div>Released in 2022.</div>
+
+Make by [Daniel Jorge](https://github.com/danieljpgo)
+
+<!-- # Remix Indie Stack
 
 ![The Remix Indie Stack](https://repository-images.githubusercontent.com/465928257/a241fa49-bd4d-485a-a2a5-5cb8e4ee0abf)
 
@@ -177,4 +288,4 @@ This project uses ESLint for linting. That is configured in `.eslintrc.js`.
 
 ### Formatting
 
-We use [Prettier](https://prettier.io/) for auto-formatting in this project. It's recommended to install an editor plugin (like the [VSCode Prettier plugin](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)) to get auto-formatting on save. There's also a `npm run format` script you can run to format all files in the project.
+We use [Prettier](https://prettier.io/) for auto-formatting in this project. It's recommended to install an editor plugin (like the [VSCode Prettier plugin](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)) to get auto-formatting on save. There's also a `npm run format` script you can run to format all files in the project. -->
