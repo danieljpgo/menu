@@ -53,6 +53,8 @@ This project was made to [continue learning about Remix](https://github.com/dani
 
 > Note: This project has several libraries and implementations that came with the starter [Remix Indie Stack](https://github.com/remix-run/indie-stack)
 
+The main function is to calculate the quantity and type of ingredients needed to create recipes in the selected menu of recipes, facilitating the grocery process.
+
 ## Demo
 
 A demo a progressive enhancement experience.
